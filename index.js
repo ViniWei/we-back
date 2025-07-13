@@ -1,8 +1,30 @@
 import express from 'express';
+import usuarioRoutes from './routes/usuario.routes.js';
+import casalRoutes from './routes/casal.routes.js'
+import { pool } from './db.js';  
+import dotenv from 'dotenv';
+dotenv.config();
 
 const app = express();
-const PORT = 3000;
 
-app.listen(PORT, () => {
-    console.log(`Listening on port ${PORT}`);
+app.use(express.json());
+app.use('/usuarios', usuarioRoutes);
+app.use('/casais', casalRoutes);
+
+app.get('/', (req, res) => {
+    res.send('API rodando...');
+});
+
+app.get('/teste-db', async (req, res) => {
+    try {
+        const [rows] = await pool.query('SELECT NOW() AS agora');
+        res.json({ sucesso: true, hora: rows[0].agora });
+    } catch (error) {
+        console.error('Erro ao conectar ao banco:', error);
+        res.status(500).json({ sucesso: false, erro: error.message });
+    }
+});
+
+app.listen(process.env.PORT, () => {
+    console.log(`Servidor rodando em http://localhost:${process.env.PORT}`);
 });
