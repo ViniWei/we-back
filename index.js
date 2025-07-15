@@ -2,8 +2,6 @@ import express from 'express';
 import usuarioRoutes from './routes/usuario.routes.js';
 import casalRoutes from './routes/casal.routes.js'
 import { pool } from './db.js';  
-import dotenv from 'dotenv';
-dotenv.config();
 
 const app = express();
 

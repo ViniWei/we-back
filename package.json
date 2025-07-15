@@ -4,14 +4,15 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "serve": "node index.js",
+    "serve": "node --env-file=.env index.js",
     "lint": "npx eslint --fix ."
   },
   "author": "",
   "license": "ISC",
   "description": "",
   "dependencies": {
-    "express": "^5.1.0"
+    "express": "^5.1.0",
+    "mysql2": "^3.14.2"
   },
   "devDependencies": {
     "eslint": "^9.30.1",
