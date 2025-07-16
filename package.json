@@ -4,7 +4,7 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "serve": "node --env-file=.env index.js",
+    "serve": "npx nodemon --env-file=.env index.js",
     "lint": "npx eslint --fix ."
   },
   "author": "",
