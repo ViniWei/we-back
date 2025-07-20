@@ -32,7 +32,7 @@ export async function criar(req, res) {
     const usuario = {
         nome: req.body.nome,
         email: req.body.email,
-        senha: req.body.senha,
+        senha: usuarioService.criptografarSenha(req.body.senha),
         casalId: req.body.casalId
     };
 
@@ -81,4 +81,22 @@ export async function deletar(req, res) {
     }
 
     res.send("Usuário deletado com sucesso.");
+}
+
+export async function login(req, res) {
+    const { email, senha } = req.body;
+
+    let usuario;
+    try {
+        usuario = await usuarioRepository.obterPorEmail(email);
+    } catch (error) {
+        return res.status(500).send(errorHelper.gerarRetorno("Erro ao buscar usuário.", "erro-obter-usuario", error));
+    }
+
+    if (!usuario) {
+        return res.status(409).send(errorHelper.gerarRetorno("Usuário não encontrado.", "usuario-nao-encontrado"));
+    }
+
+    const resul = await usuarioService.compararSenha(senha, usuario.senha)
+    res.send(resul);
 }
