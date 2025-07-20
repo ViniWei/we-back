@@ -10,6 +10,7 @@ export default defineConfig([
             "no-unused-expressions": "error",
             "no-unused-vars": "error",
             "prefer-const": "error",
+            "quotes": ["error", "double"],
             "indent": ["error", 4],
             "semi": ["error"],
         },

@@ -1,4 +1,4 @@
-import { Router } from 'express';
+import { Router } from "express";
 
 import {
     listar,
@@ -6,14 +6,14 @@ import {
     criar,
     //     atualizar,
     deletar
-} from '../controllers/usuario.controller.js';
+} from "../controllers/usuario.controller.js";
 
 const router = Router();
 
-router.get('/', listar);
-router.get('/:id', obterPorId);
-router.post('/', criar);
+router.get("/", listar);
+router.get("/:id", obterPorId);
+router.post("/", criar);
 // router.put('/:id', atualizar);
-router.delete('/:id', deletar);
+router.delete("/:id", deletar);
 
 export default router;
