@@ -1,4 +1,5 @@
 import { Router } from "express";
+import authMiddleware from "../middleware/auth.middleware.js";
 
 import {
     listar,
@@ -11,7 +12,7 @@ import {
 
 const router = Router();
 
-router.get("/", listar);
+router.get("/", authMiddleware.verificarToken, listar);
 router.get("/:id", obterPorId);
 router.post("/login", login);
 router.post("/", criar);
