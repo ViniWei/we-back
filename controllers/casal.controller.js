@@ -1,29 +1,28 @@
-import { pool } from '../db.js';
-import { genericController } from './generic.controller.js';
+import casalRepository from "../repository/casal.repository.js";
+import errorHelper from "../helper/error.helper.js";
 
-const casalFields = ['id', 'relacionamento_ativo', 'data_inicio'];
-const casalController = genericController(pool, 'casais', casalFields);
-
-export const listar = casalController.listar;
-export const obterPorId = casalController.obterPorId;
-export const criar = casalController.criar;
-export const atualizar = casalController.atualizar;
-export const deletar = async (req, res) => {
-    const id = parseInt(req.params.id);
-
+export async function listarTodos(_req, res) {
     try {
-        const [usuarios] = await pool.query('SELECT id, nome FROM usuarios WHERE id_casal = ?', [id]);
-
-        if (usuarios.length > 0) {
-            return res.status(400).json({
-                erro: 'Não é possível deletar um casal com usuários associados.',
-                usuariosRelacionados: usuarios
-            });
-        }
-
-        return casalController.deletar(req, res);
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ erro: 'Erro ao tentar deletar casal' });
+        const casais = await casalRepository.listarTodos();
+        res.json(casais);
+    } catch {
+        res.status(500).send(errorHelper.gerarRetorno("Erro ao obter casais.", "erro-obter-casais"));
     }
-};
+}
+
+export async function obterPorId(req, res) {
+    const { id } = req.params; 
+    
+    let casal;
+    try {
+        casal = await casalRepository.obterPorId(id);
+    } catch (error) {
+        return res.status(500).send(errorHelper.gerarRetorno("Erro ao obter casal.", "erro-obter-casal", error));
+    }
+
+    if (!casal) {
+        return res.status(409).send(errorHelper.gerarRetorno("Casal não encontrado.", "casal-não-encontrado", error));
+    }
+
+    res.json(casal);
+}

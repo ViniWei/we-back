@@ -6,14 +6,15 @@ import { pool } from './db.js';
 const app = express();
 
 app.use(express.json());
+
 app.use('/usuarios', usuarioRoutes);
 app.use('/casais', casalRoutes);
 
-app.get('/', (req, res) => {
+app.get('/', (_req, res) => {
     res.send('API rodando...');
 });
 
-app.get('/teste-db', async (req, res) => {
+app.get('/teste-db', async (_req, res) => {
     try {
         const [rows] = await pool.query('SELECT NOW() AS agora');
         res.json({ sucesso: true, hora: rows[0].agora });

@@ -1,18 +1,19 @@
 import { Router } from 'express';
+
 import {
-    listar,
+    listarTodos,
     obterPorId,
-    criar,
-    atualizar,
-    deletar
+//     criar,
+//     atualizar,
+//     deletar
 } from '../controllers/casal.controller.js';
 
 const router = Router();
 
-router.get('/', listar);
+router.get('/', listarTodos);
 router.get('/:id', obterPorId);
-router.post('/', criar);
-router.put('/:id', atualizar);
-router.delete('/:id', deletar);
+// router.post('/', criar);
+// router.put('/:id', atualizar);
+// router.delete('/:id', deletar);
 
 export default router;

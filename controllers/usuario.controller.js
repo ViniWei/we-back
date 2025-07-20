@@ -1,40 +1,84 @@
-import { pool } from '../db.js';
-import { genericController } from './generic.controller.js';
+import usuarioRepository from "../repository/usuario.repository.js";
+import usuarioService from "../services/usuario.service.js";
+import errorHelper from "../helper/error.helper.js";
 
-const usuarioFields = ['id', 'nome', 'email', 'senha', 'id_casal'];
+export async function listar(_req, res) {
+    try {
+        const users = await usuarioRepository.listarTodos();
+        res.json(users);
+    } catch (error) {
+        return res.status(500).send(errorHelper.gerarRetorno("Erro ao buscar usuário.", "erro-obter-usuario", error));
+    }
+}
 
-const usuarioController = genericController(pool, 'usuarios', usuarioFields);
+export async function obterPorId(req, res) {
+    const { id } = req.params;
 
-export const listar = usuarioController.listar;
-export const obterPorId = usuarioController.obterPorId;
-export const atualizar = async (req, res) => {
-    delete req.body.data_registro;
-    return usuarioController.atualizar(req, res);
-};
-export const deletar = usuarioController.deletar;
+    let usuario;
+    try {
+        usuario = await usuarioRepository.obterPorId(id);
+    } catch (error) {
+        return res.status(500).send(errorHelper.gerarRetorno("Falha ao buscar usuário.", "erro-obter-usuario", error));
+    }
 
-export const criar = async (req, res) => {
-    const { nome, email, senha, id_casal } = req.body;
+    if (!usuario) {
+        return res.status(404).send(errorHelper.gerarRetorno("Usuário não encontrado.", "usuario-nao-encontrado"));
+    }
 
-    if (!nome || !email || !senha) {
-        return res.status(400).json({ erro: 'Nome, email e senha são obrigatórios!' });
+    res.json(usuario);
+}
+
+export async function criar(req, res) {
+    const usuario = {
+        nome: req.body.nome,
+        email: req.body.email,
+        senha: req.body.senha,
+        casalId: req.body.casalId
+    };
+
+    if (!usuarioService.verificarEmail(usuario.email)) {
+        return res.status(400).send(errorHelper.gerarRetorno("Email inválido.", "email-invalido"));
+    }
+
+    let usuarioExiste;
+    try {
+        usuarioExiste = await usuarioRepository.obterPorEmail(usuario.email);
+    } catch (error) {
+        return res.status(500).send(errorHelper.gerarRetorno("Erro ao buscar usuário.", "erro-obter-usuario", error));
+    }
+
+    if (usuarioExiste) {
+        return res.status(409).send(errorHelper.gerarRetorno("Usuário já existe.", "usuario-ja-existe"));
     }
 
     try {
-        const [existing] = await pool.query('SELECT id FROM usuarios WHERE email = ?', [email]);
-        if (existing.length > 0) {
-            return res.status(409).json({ erro: 'E-mail já cadastrado!' });
-        }
+        await usuarioRepository.criar(usuario);
+    } catch (e) {
+        return res.status(500).send(errorHelper.gerarRetorno("Erro ao criar usuário.", "erro-criar-usuario", e));
+    }
+
+    res.send("Usuário criado com sucesso");
+}
+
+export async function deletar(req, res) {
+    const { id } = req.params;
+
+    let usuarioExiste;
+    try {
+        usuarioExiste = await usuarioRepository.obterPorId(id);
     } catch (error) {
-        console.error(error);
-        return res.status(500).json({ erro: 'Erro ao validar e-mail' });
+        return res.status(500).send(errorHelper.gerarRetorno("Erro ao buscar usuário.", "erro-obter-usuario", error));
     }
 
-    const novoUsuario = { nome, email, senha };
-    if (id_casal !== undefined && id_casal !== null && id_casal !== '') {
-        novoUsuario.id_casal = id_casal;
+    if (!usuarioExiste) {
+        return res.status(409).send(errorHelper.gerarRetorno("Usuário não encontrado.", "usuario-nao-encontrado"));
     }
 
-    req.body = novoUsuario;
-    return usuarioController.criar(req, res);
-};
+    try {
+        await usuarioRepository.deletarPorId(id);
+    } catch (error) {
+        return res.send(errorHelper.gerarRetorno("Erro ao obter usuário.", "erro-obter-usuario", error)); 
+    }
+
+    res.send("Usuário deletado com sucesso.");
+}
