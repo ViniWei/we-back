@@ -1,4 +1,5 @@
 import bcrypt from "bcryptjs";
+import jwt from 'jsonwebtoken';
 
 function verificarEmail(email) {
     const emailRegex = /\S+@\S+\.\S+/;
@@ -10,12 +11,17 @@ function criptografarSenha(senha) {
     return bcrypt.hashSync(senha, salt);
 }
 
-async function compararSenha(senha, hashArmazenado) {
-    return await bcrypt.compare(senha, hashArmazenado)
+function logar(usuario) {
+    const payload = {
+        email: usuario.email,
+        id_casal: usuario.id_casal
+    }
+
+    return jwt.sign(payload, process.env.SECRET_KEY)
 }
 
 export default {
     verificarEmail,
     criptografarSenha,
-    compararSenha
+    logar
 };

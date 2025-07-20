@@ -1,3 +1,5 @@
+import bcrypt from "bcryptjs";
+
 import usuarioRepository from "../repository/usuario.repository.js";
 import usuarioService from "../services/usuario.service.js";
 import errorHelper from "../helper/error.helper.js";
@@ -97,6 +99,10 @@ export async function login(req, res) {
         return res.status(409).send(errorHelper.gerarRetorno("Usuário não encontrado.", "usuario-nao-encontrado"));
     }
 
-    const resul = await usuarioService.compararSenha(senha, usuario.senha)
-    res.send(resul);
+    const mesmaSenha = await bcrypt.compare(senha, usuario.senha);
+    if (!mesmaSenha) {
+        return res.status(409).send(errorHelper.gerarRetorno("Senha inválida.", "senha-invalida"));
+    }
+
+    res.send(usuarioService.logar(usuario))
 }
