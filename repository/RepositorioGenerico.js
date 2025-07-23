@@ -43,6 +43,9 @@ export default class RepositorioGenerico {
         await pool.query(`DELETE FROM ${this.tableName} WHERE ${campo} = ?`, [valor]);
     } 
 
+    /**
+     * Recebe um objeto onde os nomes das chaves representam os campos no banco, e seus valores são atribuídos a esses campos
+     */
     async criar(camposEValores) {
         const { nomeCampos, valores, interrogacoes } = formatarDadosParaInsert(camposEValores);
 
