@@ -35,7 +35,7 @@ export async function criar(req, res) {
         nome: req.body.nome,
         email: req.body.email,
         senha: usuarioService.criptografarSenha(req.body.senha),
-        casalId: req.body.casalId
+        id_casal: req.body.casalId
     };
 
     if (!usuarioService.verificarEmail(usuario.email)) {

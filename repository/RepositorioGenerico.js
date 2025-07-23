@@ -1,5 +1,29 @@
 import { pool } from "../db.js";
 
+function removerUltimos2Caracteres(texto) {
+    return texto.substring(0, texto.length - 2)
+}
+
+function formatarDadosParaInsert(camposEValores) {
+    const valores = [];
+    let nomeCampos = "";
+    let interrogacoes = "";
+
+    for (const chave in camposEValores) {
+        if (!camposEValores[chave]) continue;
+
+        valores.push(camposEValores[chave]); 
+        nomeCampos += chave + ", ";
+        interrogacoes += "?, ";
+    }
+
+    return {
+        nomeCampos: removerUltimos2Caracteres(nomeCampos),
+        interrogacoes: removerUltimos2Caracteres(interrogacoes),
+        valores
+    }
+}
+
 export default class RepositorioGenerico {
     constructor(tableName) {
         this.tableName = tableName;
@@ -18,4 +42,11 @@ export default class RepositorioGenerico {
     async deletarPorCampo(campo, valor) {
         await pool.query(`DELETE FROM ${this.tableName} WHERE ${campo} = ?`, [valor]);
     } 
+
+    async criar(camposEValores) {
+        const dados = formatarDadosParaInsert(camposEValores);
+
+        const query = `INSERT INTO ${this.tableName} (${dados.nomeCampos}) VALUES (${dados.interrogacoes})`;
+        await pool.query(query, dados.valores);
+    }
 }
