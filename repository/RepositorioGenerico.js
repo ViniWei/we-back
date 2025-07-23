@@ -44,9 +44,9 @@ export default class RepositorioGenerico {
     } 
 
     async criar(camposEValores) {
-        const dados = formatarDadosParaInsert(camposEValores);
+        const { nomeCampos, valores, interrogacoes } = formatarDadosParaInsert(camposEValores);
 
-        const query = `INSERT INTO ${this.tableName} (${dados.nomeCampos}) VALUES (${dados.interrogacoes})`;
-        await pool.query(query, dados.valores);
+        const query = `INSERT INTO ${this.tableName} (${nomeCampos}) VALUES (${interrogacoes})`;
+        await pool.query(query, valores);
     }
 }
