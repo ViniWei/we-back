@@ -1,4 +1,3 @@
-import { pool } from "../db.js";
 import RepositorioGenerico from "./RepositorioGenerico.js";
 
 const tableName = "usuarios";

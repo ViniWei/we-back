@@ -1,7 +1,7 @@
 import { pool } from "../db.js";
 
 function removerUltimos2Caracteres(texto) {
-    return texto.substring(0, texto.length - 2)
+    return texto.substring(0, texto.length - 2);
 }
 
 function formatarDadosParaInsert(camposEValores) {
@@ -21,7 +21,7 @@ function formatarDadosParaInsert(camposEValores) {
         nomeCampos: removerUltimos2Caracteres(nomeCampos),
         interrogacoes: removerUltimos2Caracteres(interrogacoes),
         valores
-    }
+    };
 }
 
 export default class RepositorioGenerico {

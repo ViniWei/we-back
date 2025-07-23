@@ -104,5 +104,5 @@ export async function login(req, res) {
         return res.status(409).send(errorHelper.gerarRetorno("Senha inválida.", "senha-invalida"));
     }
 
-    res.send(usuarioService.logar(usuario))
+    res.send(usuarioService.logar(usuario));
 }

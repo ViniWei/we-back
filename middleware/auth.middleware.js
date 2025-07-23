@@ -16,4 +16,4 @@ function verificarToken(req, res, next) {
 
 export default {
     verificarToken
-}
+};
