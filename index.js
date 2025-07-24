@@ -1,29 +1,30 @@
 import express from "express";
-import usuarioRoutes from "./routes/usuario.routes.js";
-import casalRoutes from "./routes/casal.routes.js";
+
+import usersRoutes from "./routes/users.routes.js";
+import couplesRoutes from "./routes/couples.routes.js";
 import { pool } from "./db.js";  
+import errorHelper from "./helper/error.helper.js";
 
 const app = express();
 
 app.use(express.json());
 
-app.use("/usuarios", usuarioRoutes);
-app.use("/casais", casalRoutes);
+app.use("/users", usersRoutes);
+app.use("/couples", couplesRoutes);
 
 app.get("/", (_req, res) => {
-    res.send("API rodando...");
+    res.send("Api working.");
 });
 
-app.get("/teste-db", async (_req, res) => {
+app.get("/db-health-check", async (_req, res) => {
     try {
-        const [rows] = await pool.query("SELECT NOW() AS agora");
-        res.json({ sucesso: true, hora: rows[0].agora });
+        const [rows] = await pool.query("SELECT NOW() AS now");
+        res.send(rows[0].now);
     } catch (error) {
-        console.error("Erro ao conectar ao banco:", error);
-        res.status(500).json({ sucesso: false, erro: error.message });
+        res.status(500).json(errorHelper.buildStandardResponse("Can't connect to db", "db-failed-connection", error));
     }
 });
 
 app.listen(process.env.PORT, () => {
-    console.log(`Servidor rodando em http://localhost:${process.env.PORT}`);
+    console.log(`Listening on port: ${process.env.PORT}`);
 });

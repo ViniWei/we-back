@@ -1,4 +1,4 @@
-function gerarRetorno(message, businessCode, error) {
+function buildStandardResponse(message, businessCode, error) {
     const response = {
         message,
         businessCode
@@ -10,5 +10,5 @@ function gerarRetorno(message, businessCode, error) {
 }
 
 export default {
-    gerarRetorno,
+    buildStandardResponse,
 };
