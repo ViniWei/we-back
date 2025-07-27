@@ -85,6 +85,30 @@ export async function remove(req, res) {
     res.send("User deleted.");
 }
 
+export async function update(req, res) {
+    const payload = req.body;
+    const id = req.params.id;
+
+    let isUserStored;
+    try {
+        isUserStored = await usersRepository.getById(id);
+    } catch (error) {
+        return res.status(500).send(errorHelper.buildStandardResponse("Error while fetching user.", "error-db-get-user", error));
+    }
+
+    if (!isUserStored) {
+        return res.status(409).send(errorHelper.buildStandardResponse("User not found.", "user-not-found"));
+    }
+
+    try {
+        await usersRepository.update("id", id, payload);
+    } catch (error) {
+        return res.status(500).send(errorHelper.buildStandardResponse("Error while updating user.", "error-db-user", error)); 
+    }
+
+    res.send("User updated.");
+}
+
 export async function login(req, res) {
     const { email, password } = req.body;
 

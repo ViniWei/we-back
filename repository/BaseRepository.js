@@ -5,14 +5,12 @@ function removeLastTwoCharactersFromString(text) {
 }
 
 function formatDataToInsert(fieldsAndValues) {
-    const values = [];
     let fields = "";
     let valueLocation = "";
 
     for (const key in fieldsAndValues) {
         if (!fieldsAndValues[key]) continue;
 
-        values.push(fieldsAndValues[key]); 
         fields += key + ", ";
         valueLocation += "?, ";
     }
@@ -20,8 +18,18 @@ function formatDataToInsert(fieldsAndValues) {
     return {
         fields: removeLastTwoCharactersFromString(fields),
         valueLocation: removeLastTwoCharactersFromString(valueLocation),
-        values
     };
+}
+
+function formatDataToUpdate(fieldsAndValuesToUpdate) {
+    let updateFields = "";
+    for (const key in fieldsAndValuesToUpdate) {
+        if (!fieldsAndValuesToUpdate[key]) continue;
+
+        updateFields += `${key} = ?, `;
+    }
+
+    return removeLastTwoCharactersFromString(updateFields);
 }
 
 export default class BaseRepository {
@@ -47,9 +55,20 @@ export default class BaseRepository {
      * Receives an object where the key names represent the fields in the database, and their values are assigned to those fields.
      */
     async create(fieldAndValues) {
-        const { fields, values, valueLocation } = formatDataToInsert(fieldAndValues);
+        const { fields, valueLocation } = formatDataToInsert(fieldAndValues);
 
         const query = `INSERT INTO ${this.tableName} (${fields}) VALUES (${valueLocation})`;
-        await pool.query(query, values);
+        await pool.query(query, Object.values(fieldAndValues));
+    }
+
+    async updateAllByField(field, value, fieldsAndValuesToUpdate) {
+        for (const key in fieldsAndValuesToUpdate) {
+            if (!fieldsAndValuesToUpdate[key]) delete fieldsAndValuesToUpdate[key];
+        }
+
+        const data = formatDataToUpdate(fieldsAndValuesToUpdate);
+
+        const query = `UPDATE ${this.tableName} SET ${data} WHERE ${field} = ${value}`;
+        await pool.query(query, Object.values(fieldsAndValuesToUpdate));
     }
 }

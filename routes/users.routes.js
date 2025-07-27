@@ -6,7 +6,8 @@ import {
     get,
     create,
     remove,
-    login
+    login,
+    update
 } from "../controllers/users.controller.js";
 
 const router = Router();
@@ -15,6 +16,7 @@ router.get("/", authMiddleware.verifyToken, getAll);
 router.get("/:id", get);
 router.post("/login", login);
 router.post("/", create);
+router.patch("/:id", update);
 router.delete("/:id", remove);
 
 export default router;
