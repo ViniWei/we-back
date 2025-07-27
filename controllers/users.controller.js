@@ -55,7 +55,7 @@ export async function create(req, res) {
 
     try {
         await usersRepository.create(user);
-    } catch (e) {
+    } catch (error) {
         return res.status(500).send(errorHelper.buildStandardResponse("Error while creating user.", "error-db-create-user", error));
     }
 
