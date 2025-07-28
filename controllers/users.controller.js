@@ -109,6 +109,37 @@ export async function update(req, res) {
     res.send("User updated.");
 }
 
+export async function changePassword(req, res) {
+    const { oldPassword, newPassword } = req.body;
+    const id = req.params.id;
+
+    let user;
+    try {
+        user = await usersRepository.getById(id);
+    } catch (error) {
+        return res.status(500).send(errorHelper.buildStandardResponse("Error while fetching user.", "error-db-get-user", error));
+    }
+    if (!user) {
+        return res.status(409).send(errorHelper.buildStandardResponse("User not found.", "user-not-found"));
+    }
+    
+    const isSamePassword = await bcrypt.compare(oldPassword, user.senha);
+    if (!isSamePassword) {
+        return res.status(403).send(errorHelper.buildStandardResponse("Invalid password.", "invalid-password"));
+    }
+
+    const fieldsToUpdate = {
+        senha: usersService.encryptPassword(newPassword)
+    }
+    try {
+        await usersRepository.update("id", id, fieldsToUpdate);
+    } catch (error) {
+        return res.status(500).send(errorHelper.buildStandardResponse("Error while updating user.", "error-db-user", error)); 
+    }
+
+    res.send("Changed password.");
+}
+
 export async function login(req, res) {
     const { email, password } = req.body;
 

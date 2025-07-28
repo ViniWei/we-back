@@ -7,7 +7,8 @@ import {
     create,
     remove,
     login,
-    update
+    update,
+    changePassword
 } from "../controllers/users.controller.js";
 
 const router = Router();
@@ -15,6 +16,7 @@ const router = Router();
 router.get("/", authMiddleware.verifyToken, getAll);
 router.get("/:id", get);
 router.post("/login", login);
+router.put("/changePassword/:id", changePassword);
 router.post("/", create);
 router.patch("/:id", update);
 router.delete("/:id", remove);
