@@ -1,6 +1,6 @@
 import BaseRepository from "./BaseRepository.js";
 
-const tableName = "usuarios";
+const tableName = "users";
 const baseRepository = new BaseRepository(tableName);
 
 const getAll = async() => { return await baseRepository.getAll(); };

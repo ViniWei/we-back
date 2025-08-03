@@ -32,10 +32,10 @@ export async function get(req, res) {
 
 export async function create(req, res) {
     const user = {
-        nome: req.body.nome,
+        name: req.body.name,
         email: req.body.email,
-        senha: usersService.encryptPassword(req.body.senha),
-        id_casal: req.body.casalId
+        password: usersService.encryptPassword(req.body.password),
+        couple_id: req.body.couple_id
     };
 
     if (!usersService.verifyEmailFormat(user.email)) {
