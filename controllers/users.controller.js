@@ -130,7 +130,7 @@ export async function changePassword(req, res) {
 
     const fieldsToUpdate = {
         senha: usersService.encryptPassword(newPassword)
-    }
+    };
     try {
         await usersRepository.update("id", id, fieldsToUpdate);
     } catch (error) {
@@ -154,10 +154,13 @@ export async function login(req, res) {
         return res.status(404).send(errorHelper.buildStandardResponse("User not found.", "user-not-found"));
     }
 
-    const isTheSamePassword = await bcrypt.compare(password, storedUser.senha);
+    const isTheSamePassword = await bcrypt.compare(password, storedUser.password);
     if (!isTheSamePassword) {
         return res.status(409).send(errorHelper.buildStandardResponse("Invalid password.", "invalid-password"));
     }
+    const { payload, accessToken, refreshToken } = usersService.signin(storedUser);
 
-    res.send(usersService.signin(storedUser));
+    res.cookie("refreshToken", refreshToken, { httpOnly: true, sameSite: "strict" })
+       .header("Authorization", accessToken)
+       .send(payload);
 }

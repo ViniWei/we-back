@@ -13,13 +13,21 @@ function encryptPassword(password) {
     return bcrypt.hashSync(password, salt);
 }
 
-function signin(usuario) {
+function signin(user) {
     const payload = {
-        email: usuario.email,
-        id_casal: usuario.id_casal
+        id: user.id,
+        email: user.email,
+        couple_id: user.couple_id
     };
 
-    return jwt.sign(payload, process.env.SECRET_KEY);
+    const accessToken = jwt.sign(payload, process.env.SECRET_KEY, { expiresIn: "1h" });
+    const refreshToken = jwt.sign({ id: user.id }, process.env.SECRET_KEY, { expiresIn: "15d" });
+
+    return {
+        payload,
+        accessToken,
+        refreshToken
+    };
 }
 
 export default {
