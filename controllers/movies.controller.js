@@ -1,15 +1,6 @@
 import moviesRepository from "../repository/movies.repository.js";
 import errorHelper from "../helper/error.helper.js";
 
-export async function getAllByCoupleId(_req, res) {
-    try {
-        const movies = await moviesRepository.getAll();
-        res.json(movies);
-    } catch (error) {
-        return res.status(500).send(errorHelper.buildStandardResponse("Error while fetching movie.", "error-db-get-movie", error));
-    }
-}
-
 export async function get(req, res) {
     const { id } = req.params;
 
@@ -24,7 +15,7 @@ export async function get(req, res) {
         return res.status(404).send(errorHelper.buildStandardResponse("Movie not found.", "movie-not-found"));
     }
 
-    res.json(movie);
+    return res.json(movie);
 }
 
 export async function create(req, res) {
@@ -46,7 +37,7 @@ export async function create(req, res) {
         return res.status(500).send(errorHelper.buildStandardResponse("Error while creating movie.", "error-db-create-movie", error));
     }
 
-    res.json({ message: "New movie created." });
+    return res.json({ message: "New movie created." });
 }
 
 export async function createMovieList(req, res) {
@@ -64,7 +55,7 @@ export async function createMovieList(req, res) {
     } catch (error) {
         return res.status(500).send(errorHelper.buildStandardResponse("Error while creating movie list.", "error-db-create-movie-list", error));
     }
-    res.json({ message: "New movie list created." });
+    return res.json({ message: "New movie list created." });
 }
 
 export async function addMovieToList(req, res) {
@@ -75,7 +66,17 @@ export async function addMovieToList(req, res) {
         return res.status(500).send(errorHelper.buildStandardResponse("Error while adding movie to list.", "error-db-add-movie-to-list", error));
     }
 
-    res.json({ message: "Movie added to list." });
+    return res.json({ message: "Movie added to list." });
+}
+
+export async function getListsByCouple(req, res) {
+    const { coupleId } = req.body;
+    try {
+        const movies = await moviesRepository.getListsByCouple(coupleId)
+        return res.json(movies);
+    } catch (error) {
+        return res.status(404).send(errorHelper.buildStandardResponse("Error while fetching couple movie lists.", "error-db-get-couple-movie-lists", error));
+    }
 }
 
 export async function getMoviesByListId(req, res) {
@@ -92,7 +93,7 @@ export async function getMoviesByListId(req, res) {
         return res.status(404).send(errorHelper.buildStandardResponse("No movies found for this list.", "no-movies-found"));
     }
 
-    res.json(movies);
+    return res.json(movies);
 }
 
 export async function removeFromList(req, res) {
@@ -104,7 +105,7 @@ export async function removeFromList(req, res) {
         return res.send(errorHelper.buildStandardResponse("Error while removing movie.", "error-db-remove-movie-from-list", error)); 
     }
 
-    res.json({ message: "Movie removed from list." });
+    return res.json({ message: "Movie removed from list." });
 }
 
 export async function removeList(req, res) {
@@ -115,5 +116,5 @@ export async function removeList(req, res) {
     } catch (error) {
         return res.status(500).send(errorHelper.buildStandardResponse("Error while removing movie list.", "error-db-remove-movie-list", error));
     }
-    res.json({ message: "Movie list removed." });
+    return res.json({ message: "Movie list removed." });
 }
