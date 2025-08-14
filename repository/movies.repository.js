@@ -6,7 +6,11 @@ const baseRepository = new BaseRepository(tableName);
 
 const getById = async(id) => { return await baseRepository.getFirstByField("id", id); };
 const create = async(movie) => { return await baseRepository.create(movie); };
-const createMovieList = async(list) => { return await baseRepository.create(list); };
+
+const createMovieList = async(list) => {
+    const query = "INSERT INTO movie_lists (name, couple_id, created_at) VALUES (?, ?, ?)";
+    await pool.query(query, [list.name, list.couple_id, list.created_at]);
+};
 
 const addMovieToList = async(listId, movieId) => {
     const query = "INSERT INTO movie_list_items (movieId, listId, data_adicionado) VALUES (?, ?, ?)";

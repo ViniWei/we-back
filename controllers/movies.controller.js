@@ -70,9 +70,14 @@ export async function addMovieToList(req, res) {
 }
 
 export async function getListsByCouple(req, res) {
-    const { coupleId } = req.body;
+    const { coupleId } = req.params;
     try {
         const movies = await moviesRepository.getListsByCouple(coupleId)
+
+        if (movies.length === 0) {
+            return res.status(404).send(errorHelper.buildStandardResponse("No movie lists found for this couple.", "no-movie-lists-found"));
+        }
+
         return res.json(movies);
     } catch (error) {
         return res.status(404).send(errorHelper.buildStandardResponse("Error while fetching couple movie lists.", "error-db-get-couple-movie-lists", error));
