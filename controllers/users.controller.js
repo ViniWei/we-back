@@ -130,7 +130,7 @@ export async function changePassword(req, res) {
 
     const fieldsToUpdate = {
         senha: usersService.encryptPassword(newPassword)
-    }
+    };
     try {
         await usersRepository.update("id", id, fieldsToUpdate);
     } catch (error) {
