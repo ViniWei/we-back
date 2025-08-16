@@ -40,7 +40,12 @@ export default class BaseRepository {
     async getAll() {
         const result = await pool.query(`SELECT * FROM ${this.tableName}`);
         return result[0];
-    } 
+    }
+
+    async getAllByField(field, value) {
+        const result = await pool.query(`SELECT * FROM ${this.tableName} WHERE ${field} = ?`, [value]);
+        return result[0];
+    }
     
     async getFirstByField(field, value) {
         const result = await pool.query(`SELECT * FROM ${this.tableName} WHERE ${field} = ?`, [value]);
