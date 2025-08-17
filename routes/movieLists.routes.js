@@ -1,11 +1,16 @@
 import { Router } from "express";
-import { get, createMovieList, getListsByCouple, deleteList } from "../controllers/movieLists.controller.js"; 
+import { getAll, get, getMoviesByList, create, addToList, update,getByCouple, removeFromList,deleteList } from "../controllers/movieLists.controller.js"; 
 
 const router = Router();
 
+router.get("/", getAll);
 router.get("/:id", get);
-router.post("/", createMovieList)
-router.get("/couple/:id", getListsByCouple);
+router.get("/couple/:id", getByCouple);
+router.get("/movies/:list_id", getMoviesByList);
+router.post("/", create);
+router.post("/add", addToList);
+router.post("/remove", removeFromList);
+router.put("/:id", update);
 router.delete("/:id", deleteList);
 
 export default router;
