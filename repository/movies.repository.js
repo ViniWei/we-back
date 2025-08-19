@@ -1,10 +1,12 @@
 import BaseRepository from "./BaseRepository.js";
+import { pool } from "../db.js";
 
 const tableName = "movies";
 const baseRepository = new BaseRepository(tableName);
 
 const getAll = async() => { return await baseRepository.getAll(); };
 const getById = async(id) => { return await baseRepository.getFirstByField("id", id); };
+const getByApiId = async (apiId) => { return await baseRepository.getFirstByField("api_id", apiId); };
 const create = async(movie) => { return await baseRepository.create(movie); };
 
 const getListsWithMoviesByCouple = async(coupleId) => {
@@ -12,12 +14,10 @@ const getListsWithMoviesByCouple = async(coupleId) => {
         `SELECT 
             ml.id AS list_id,
             ml.name AS list_name,
-            m.id AS movie_id,
+            mli.id AS movie_id,
             m.title AS movie_title,
             m.synopsis,
             m.poster_path,
-            m.api_id,
-            m.created_at AS movie_created_at,
             mli.created_at AS added_at
         FROM movie_lists ml
         INNER JOIN movie_list_items mli ON ml.id = mli.list_id
@@ -41,8 +41,6 @@ const getListsWithMoviesByCouple = async(coupleId) => {
             title: row.movie_title,
             synopsis: row.synopsis,
             poster_path: row.poster_path,
-            api_id: row.api_id,
-            created_at: row.movie_created_at,
             added_at: row.added_at
         });
     });
@@ -53,6 +51,7 @@ const getListsWithMoviesByCouple = async(coupleId) => {
 export default {
     getAll,
     getById,
+    getByApiId,
     create,
     getListsWithMoviesByCouple
 };

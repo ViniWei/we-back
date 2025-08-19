@@ -74,7 +74,7 @@ export async function addToList(req, res) {
     };
 
     try {
-        await movieListItemsRepository.create(item);
+        await movieListItemsRepository.addToList(item);
         return res.json({ message: "Movie added to list." });
     } catch (error) {
         return res.status(500).send(errorHelper.buildStandardResponse("Error while adding movie to list.", "error-db-add-movie-to-list", error));
@@ -82,14 +82,10 @@ export async function addToList(req, res) {
 };
 
 export async function removeFromList(req, res) {
-    const { list_id, movie_id } = req.body;
-
-    if (!list_id || !movie_id) {
-        return res.status(400).json(errorHelper.buildStandardResponse("Missing required fields: list_id and movie_id.", "missing-fields"));
-    }
+    const { id } = req.params;
 
     try {
-        await movieListItemsRepository.removeFromList(list_id, movie_id);
+        await movieListItemsRepository.removeFromList(id);
         return res.json({ message: "Movie removed from list." });
     } catch (error) {
         return res.status(500).send(errorHelper.buildStandardResponse("Error while removing movie from list.", "error-db-remove-movie-from-list", error));

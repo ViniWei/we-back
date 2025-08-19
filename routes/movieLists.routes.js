@@ -7,7 +7,7 @@ router.get("/", getAll);
 router.get("/:id", get);
 router.post("/", create);
 router.post("/add", addToList);
-router.post("/remove", removeFromList);
+router.delete("/remove/:id", removeFromList);
 router.put("/:id", update);
 router.delete("/:id", deleteList);
 

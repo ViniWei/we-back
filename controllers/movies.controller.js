@@ -27,6 +27,31 @@ export async function get(req, res) {
     return res.json(movie);
 }
 
+export async function getOrCreateIfNotExists(req, res) {
+    const { id } = req.body;
+
+    let movie;
+    try {
+        movie = await moviesRepository.getByApiId(id);
+    } catch (error) {
+        return res.status(500).send(errorHelper.buildStandardResponse("Error while fetching movie.", "error-db-get-movie", error));
+    }
+
+    if (!movie) {
+        const newMovie = {
+            title: req.body.title,
+            synopsis: req.body.overview,
+            poster_path: req.body.poster_path,
+            api_id: req.body.id,
+            created_at: new Date()
+        };
+
+        movie = await moviesRepository.create(newMovie);
+    }
+
+    return res.json(movie);
+}
+
 export async function create(req, res) {
     if (!req.body.title || !req.body.synopsis || !req.body.poster_path || !req.body.api_id) {
         return res.status(400).json(errorHelper.buildStandardResponse("Missing required fields: title, synopsis, poster_path and api_id.", "missing-fields"));
@@ -41,12 +66,12 @@ export async function create(req, res) {
     };
 
     try {
-        await moviesRepository.create(movie);
+        const result = await moviesRepository.create(movie);
+
+        return res.json(result);
     } catch (error) {
         return res.status(500).send(errorHelper.buildStandardResponse("Error while creating movie.", "error-db-create-movie", error));
     }
-
-    return res.json({ message: "New movie created." });
 }
 
 export async function getListsWithMoviesByCouple(req, res) {

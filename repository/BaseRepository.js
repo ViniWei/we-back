@@ -63,7 +63,15 @@ export default class BaseRepository {
         const { fields, valueLocation } = formatDataToInsert(fieldAndValues);
 
         const query = `INSERT INTO ${this.tableName} (${fields}) VALUES (${valueLocation})`;
-        await pool.query(query, Object.values(fieldAndValues));
+        const [result] = await pool.query(query, Object.values(fieldAndValues));
+
+        const insertedId = result.insertId;
+
+        const [rows] = await pool.query(
+            `SELECT * FROM ${this.tableName} WHERE id = ?`,
+            [insertedId]
+        );
+        return rows[0];
     }
 
     async updateAllByField(field, value, fieldsAndValuesToUpdate) {
