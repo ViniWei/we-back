@@ -48,3 +48,15 @@ export async function create(req, res) {
 
     return res.json({ message: "New movie created." });
 }
+
+export async function getListsWithMoviesByCouple(req, res) {
+    const { couple_id } = req.params;
+
+    try {
+        const result = await moviesRepository.getListsWithMoviesByCouple(couple_id);
+
+        return res.json(result);
+    } catch (error) {
+        return res.status(500).send(errorHelper.buildStandardResponse("Error while fetching all lists and movies by couple.", "error-db-get-lists-and-movies-couple", error));
+    }
+}

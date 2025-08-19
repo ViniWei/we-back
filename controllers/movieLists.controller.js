@@ -25,21 +25,6 @@ export async function get(req, res) {
     }
 }
 
-export async function getMoviesByList(req, res) {
-    const { list_id } = req.params;
-
-    try {
-        const movies = await movieListItemsRepository.getMoviesByListId(list_id);
-        if (movies.length === 0) {
-            return res.status(404).json(errorHelper.buildStandardResponse("No movies found in this list.", "no-movies-in-list"));
-        }
-
-        return res.json(movies);
-    } catch (error) {
-        return res.status(500).json(errorHelper.buildStandardResponse("Error while fetching movies in list.", "error-db-get-movies-in-list", error));
-    }
-}
-
 export async function create(req, res) {
     if (!req.body.name || !req.body.couple_id) {
         return res.status(400).json(errorHelper.buildStandardResponse("Missing required fields: name and couple_id.", "missing-fields"));
@@ -95,21 +80,6 @@ export async function addToList(req, res) {
         return res.status(500).send(errorHelper.buildStandardResponse("Error while adding movie to list.", "error-db-add-movie-to-list", error));
     }
 };
-
-export async function getByCouple(req, res) {
-    const { id } = req.params;
-    try {
-        const lists = await movieListsRepository.getListsByCouple(id);
-
-        if (lists.length === 0) {
-            return res.status(404).send(errorHelper.buildStandardResponse("No movie lists found for this couple.", "no-movie-lists-found"));
-        }
-
-        return res.json(lists);
-    } catch (error) {
-        return res.status(404).send(errorHelper.buildStandardResponse("Error while fetching couple movie lists.", "error-db-get-couple-movie-lists", error));
-    }
-}
 
 export async function removeFromList(req, res) {
     const { list_id, movie_id } = req.body;
