@@ -5,6 +5,7 @@ import usersRoutes from "./routes/users.routes.js";
 import couplesRoutes from "./routes/couples.routes.js";
 import moviesRoutes from "./routes/movies.routes.js";
 import movieListsRoutes from "./routes/movieLists.routes.js";
+import expensesRoutes from "./routes/expenses.routes.js";
 import { pool } from "./db.js";  
 import errorHelper from "./helper/error.helper.js";
 
@@ -18,6 +19,7 @@ app.use("/users", usersRoutes);
 app.use("/couples", couplesRoutes);
 app.use("/movies", moviesRoutes);
 app.use("/movie-lists", movieListsRoutes);
+app.use("/expenses", expensesRoutes);
 
 app.get("/", (_req, res) => {
     res.send("Api working.");

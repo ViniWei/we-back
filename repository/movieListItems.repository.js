@@ -1,5 +1,4 @@
 import BaseRepository from "./BaseRepository.js";
-import { pool } from "../db.js";
 
 const tableName = "movie_list_items";
 const baseRepository = new BaseRepository(tableName);
