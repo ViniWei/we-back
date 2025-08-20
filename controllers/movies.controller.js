@@ -4,7 +4,7 @@ import errorHelper from "../helper/error.helper.js";
 export async function getAll(_req, res) {
     try {
         const movies = await moviesRepository.getAll();
-        return res.json(movies);
+        res.json(movies);
     } catch (error) {
         return res.status(500).send(errorHelper.buildStandardResponse("Error while fetching movies.", "error-db-get-movies", error));
     }
@@ -24,7 +24,7 @@ export async function get(req, res) {
         return res.status(404).send(errorHelper.buildStandardResponse("Movie not found.", "movie-not-found"));
     }
 
-    return res.json(movie);
+    res.json(movie);
 }
 
 export async function getOrCreateIfNotExists(req, res) {
@@ -49,7 +49,7 @@ export async function getOrCreateIfNotExists(req, res) {
         movie = await moviesRepository.create(newMovie);
     }
 
-    return res.json(movie);
+    res.json(movie);
 }
 
 export async function create(req, res) {
@@ -68,7 +68,7 @@ export async function create(req, res) {
     try {
         const result = await moviesRepository.create(movie);
 
-        return res.json(result);
+        res.json(result);
     } catch (error) {
         return res.status(500).send(errorHelper.buildStandardResponse("Error while creating movie.", "error-db-create-movie", error));
     }
@@ -80,7 +80,7 @@ export async function getListsWithMoviesByCouple(req, res) {
     try {
         const result = await moviesRepository.getListsWithMoviesByCouple(couple_id);
 
-        return res.json(result);
+        res.json(result);
     } catch (error) {
         return res.status(500).send(errorHelper.buildStandardResponse("Error while fetching all lists and movies by couple.", "error-db-get-lists-and-movies-couple", error));
     }
