@@ -64,7 +64,6 @@ export default class BaseRepository {
 
         const query = `INSERT INTO ${this.tableName} (${fields}) VALUES (${valueLocation})`;
         const [result] = await pool.query(query, Object.values(fieldAndValues));
-
         const insertedId = result.insertId;
 
         const [rows] = await pool.query(

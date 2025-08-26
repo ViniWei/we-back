@@ -1,4 +1,5 @@
 import bcrypt from "bcryptjs";
+import crypto from "crypto";
 
 import usersRepository from "../repository/users.repository.js";
 import usersService from "../services/users.service.js";
@@ -35,7 +36,7 @@ export async function create(req, res) {
         name: req.body.name,
         email: req.body.email,
         password: usersService.encryptPassword(req.body.password),
-        couple_id: req.body.couple_id
+        couple_id: 1
     };
 
     if (!usersService.verifyEmailFormat(user.email)) {
@@ -53,13 +54,18 @@ export async function create(req, res) {
         return res.status(409).send(errorHelper.buildStandardResponse("User already exists.", "user-already-exists"));
     }
 
+    const { verificationCode, expiresAt } = generateVerificationCode();
+
+    user.verification_code = verificationCode;
+    user.verification_expires = expiresAt;
+
     try {
         await usersRepository.create(user);
     } catch (error) {
         return res.status(500).send(errorHelper.buildStandardResponse("Error while creating user.", "error-db-create-user", error));
     }
 
-    res.send("New user created.");
+    res.json("New user created.");
 }
 
 export async function remove(req, res) {
@@ -79,10 +85,10 @@ export async function remove(req, res) {
     try {
         await usersRepository.deleteAllById(id);
     } catch (error) {
-        return res.send(errorHelper.buildStandardResponse("Error while removing user.", "error-db-remove-user", error)); 
+        return res.json(errorHelper.buildStandardResponse("Error while removing user.", "error-db-remove-user", error)); 
     }
 
-    res.send("User deleted.");
+    res.json("User deleted.");
 }
 
 export async function update(req, res) {
@@ -106,7 +112,7 @@ export async function update(req, res) {
         return res.status(500).send(errorHelper.buildStandardResponse("Error while updating user.", "error-db-user", error)); 
     }
 
-    res.send("User updated.");
+    res.json("User updated.");
 }
 
 export async function changePassword(req, res) {
@@ -137,7 +143,7 @@ export async function changePassword(req, res) {
         return res.status(500).send(errorHelper.buildStandardResponse("Error while updating user.", "error-db-user", error)); 
     }
 
-    res.send("Changed password.");
+    res.json("Changed password.");
 }
 
 export async function login(req, res) {
@@ -159,5 +165,70 @@ export async function login(req, res) {
         return res.status(409).send(errorHelper.buildStandardResponse("Invalid password.", "invalid-password"));
     }
 
-    res.send(usersService.signin(storedUser));
+    res.json(usersService.signin(storedUser));
+}
+
+function generateVerificationCode() {
+    const verificationCode = crypto.randomInt(0, 100000).toString().padStart(5, "0");
+    const expiresAt = new Date(Date.now() + 1 * 60 * 1000);
+
+    const data = {
+        verificationCode,
+        expiresAt
+    };
+
+    return data;
+}
+
+export async function sendVerificationCode(req, res) {
+    const { email } = req.body;
+
+    let storedUser;
+    try {
+        storedUser = await usersRepository.getByEmail(email);
+    } catch (error) {
+        return res.status(500).send(errorHelper.buildStandardResponse("Error while fetching user.", "error-db-get-user", error));
+    }
+
+    if (!storedUser) {
+        return res.status(404).send(errorHelper.buildStandardResponse("User not found.", "user-not-found"));
+    }
+
+    const { verificationCode, expiresAt } = generateVerificationCode();
+
+    try {
+        
+        const fieldsToUpdate = {
+            verification_code: verificationCode,
+            verification_expires: expiresAt
+        }
+
+        await usersRepository.update("id", storedUser.id, fieldsToUpdate);
+        await usersService.sendVerificationEmail(email, verificationCode);
+    } catch (error) {
+        return res.status(500).send(errorHelper.buildStandardResponse("Error while sending verification code.", "error-send-verification-code", error));
+    }
+
+    res.json("Verification code sent.");
+}
+
+export async function verifyEmailCode(req, res) {
+    const { email, verification_code } = req.body;
+
+    let storedUser;
+    try {
+        storedUser = await usersRepository.getByEmail(email);
+    } catch (error) {
+        return res.status(500).send(errorHelper.buildStandardResponse("Error while fetching user.", "error-db-get-user", error));
+    }
+
+    if (!storedUser) {
+        return res.status(404).send(errorHelper.buildStandardResponse("User not found.", "user-not-found"));
+    }
+
+    if (storedUser.verification_code !== verification_code) {
+        return res.status(403).send(errorHelper.buildStandardResponse("Invalid verification code.", "invalid-verification-code"));
+    }
+
+    res.json("Email verified successfully.");
 }
