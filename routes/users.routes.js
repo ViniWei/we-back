@@ -9,7 +9,8 @@ import {
     login,
     update,
     changePassword,
-    verifyEmailCode
+    verifyEmailCode,
+    requestVerificationCode
 } from "../controllers/users.controller.js";
 
 const router = Router();
@@ -22,5 +23,6 @@ router.post("/", create);
 router.patch("/:id", update);
 router.delete("/:id", remove);
 router.post("/verifyEmail", verifyEmailCode);
+router.post("/requestVerificationCode", requestVerificationCode);
 
 export default router;

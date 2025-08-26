@@ -1,26 +1,32 @@
 import nodemailer from "nodemailer";
+import Handlebars from "handlebars";
+import fs from "fs/promises";
 
 const transporter = nodemailer.createTransport({
-    host: "smtp.gmail.com",
-    port: 587,
+    host: process.env.SMTP_HOST,
+    port: process.env.SMTP_PORT,
     secure: false,
     auth: {
-        user: process.env.NODEMAILER_AUTH_USER,
-        pass: process.env.NODEMAILER_AUTH_PASS
+        user: process.env.SMTP_AUTH_USER,
+        pass: process.env.SMTP_AUTH_PASS
     }
 });
 
 const sendVerificationEmail = async (email, code) => {
+
+    const templateHtml = await fs.readFile("./templates/verify.html", "utf-8");
+    const compiledTemplate = Handlebars.compile(templateHtml);
+    const html = compiledTemplate({ appName: "WE", code, logoUrl: "logo.png" });
+
     const mailOptions = {
-        from: "teste@gmail.com",
+        from: process.env.SMTP_AUTH_USER,
         to: email,
-        subject: "Email Verification",
-        text: `Your verification code is ${code}`
+        subject: "VERIFICAÇÃO DE E-MAIL - WE",
+        html
     };
 
     try {
         await transporter.sendMail(mailOptions);
-        console.log("Verification email sent");
     } catch (error) {
         console.error("Error sending verification email:", error);
     }

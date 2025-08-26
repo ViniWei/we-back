@@ -14,6 +14,7 @@
     "bcryptjs": "^3.0.2",
     "cors": "^2.8.5",
     "express": "^5.1.0",
+    "handlebars": "^4.7.8",
     "jsonwebtoken": "^9.0.2",
     "mysql2": "^3.14.2",
     "nodemailer": "^7.0.5"

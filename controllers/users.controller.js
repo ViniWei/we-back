@@ -2,6 +2,7 @@ import bcrypt from "bcryptjs";
 import crypto from "crypto";
 
 import usersRepository from "../repository/users.repository.js";
+import mailerService from "../services/mailer.service.js";
 import usersService from "../services/users.service.js";
 import errorHelper from "../helper/error.helper.js";
 
@@ -35,8 +36,7 @@ export async function create(req, res) {
     const user = {
         name: req.body.name,
         email: req.body.email,
-        password: usersService.encryptPassword(req.body.password),
-        couple_id: 1
+        password: usersService.encryptPassword(req.body.password)
     };
 
     if (!usersService.verifyEmailFormat(user.email)) {
@@ -59,13 +59,27 @@ export async function create(req, res) {
     user.verification_code = verificationCode;
     user.verification_expires = expiresAt;
 
+    let newUser;
     try {
-        await usersRepository.create(user);
+        newUser = await usersRepository.create(user);
     } catch (error) {
         return res.status(500).send(errorHelper.buildStandardResponse("Error while creating user.", "error-db-create-user", error));
     }
 
-    res.json("New user created.");
+    const { id, email, name, registration_date } = newUser;
+
+    try {
+        await mailerService.sendVerificationEmail(email, verificationCode);
+    } catch (error) {
+        return res.status(500).send(errorHelper.buildStandardResponse("Error while sending verification code.", "error-send-verification-code", error));
+    }
+
+    res.json({
+        id,
+        email,
+        name,
+        registration_date
+    });
 }
 
 export async function remove(req, res) {
@@ -168,19 +182,7 @@ export async function login(req, res) {
     res.json(usersService.signin(storedUser));
 }
 
-function generateVerificationCode() {
-    const verificationCode = crypto.randomInt(0, 100000).toString().padStart(5, "0");
-    const expiresAt = new Date(Date.now() + 1 * 60 * 1000);
-
-    const data = {
-        verificationCode,
-        expiresAt
-    };
-
-    return data;
-}
-
-export async function sendVerificationCode(req, res) {
+export async function requestVerificationCode(req, res) {
     const { email } = req.body;
 
     let storedUser;
@@ -201,19 +203,23 @@ export async function sendVerificationCode(req, res) {
         const fieldsToUpdate = {
             verification_code: verificationCode,
             verification_expires: expiresAt
-        }
+        };
 
         await usersRepository.update("id", storedUser.id, fieldsToUpdate);
-        await usersService.sendVerificationEmail(email, verificationCode);
+        await mailerService.sendVerificationEmail(email, verificationCode);
     } catch (error) {
         return res.status(500).send(errorHelper.buildStandardResponse("Error while sending verification code.", "error-send-verification-code", error));
     }
 
-    res.json("Verification code sent.");
+    res.json({ message: "Verification code sent." });
 }
 
 export async function verifyEmailCode(req, res) {
     const { email, verification_code } = req.body;
+
+    if (!email || !verification_code) {
+        return res.status(400).send(errorHelper.buildStandardResponse("Email and verification code are required.", "missing-email-or-code"));
+    }
 
     let storedUser;
     try {
@@ -226,9 +232,33 @@ export async function verifyEmailCode(req, res) {
         return res.status(404).send(errorHelper.buildStandardResponse("User not found.", "user-not-found"));
     }
 
-    if (storedUser.verification_code !== verification_code) {
+    if (storedUser.verification_code !== verification_code || storedUser.verification_expires < Date.now()) {
         return res.status(403).send(errorHelper.buildStandardResponse("Invalid verification code.", "invalid-verification-code"));
     }
 
-    res.json("Email verified successfully.");
+    const fieldsToUpdate = {
+        email_verified: 1,
+        verification_code: "",
+        verification_expires: ""
+    };
+
+    try {
+        await usersRepository.update("id", storedUser.id, fieldsToUpdate);
+    } catch (error) {
+        return res.status(500).send(errorHelper.buildStandardResponse("Error while verifying email.", "error-db-verify-email", error));
+    }
+
+    res.json({ message: "Email verified successfully." });
+}
+
+function generateVerificationCode() {
+    const verificationCode = crypto.randomInt(0, 100000).toString().padStart(5, "0");
+    const expiresAt = new Date(Date.now() + 1 * 60 * 1000);
+
+    const data = {
+        verificationCode,
+        expiresAt
+    };
+
+    return data;
 }
