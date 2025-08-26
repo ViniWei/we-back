@@ -2,6 +2,7 @@ import express from "express";
 
 import usersRoutes from "./routes/users.routes.js";
 import couplesRoutes from "./routes/couples.routes.js";
+import activityRoutes from "./routes/activity.routes.js"
 import { pool } from "./db.js";  
 import errorHelper from "./helper/error.helper.js";
 
@@ -11,6 +12,7 @@ app.use(express.json());
 
 app.use("/users", usersRoutes);
 app.use("/couples", couplesRoutes);
+app.use("/activity", activityRoutes)
 
 app.get("/", (_req, res) => {
     res.send("Api working.");
