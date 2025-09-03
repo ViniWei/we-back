@@ -174,12 +174,18 @@ export async function login(req, res) {
         return res.status(404).send(errorHelper.buildStandardResponse("User not found.", "user-not-found"));
     }
 
-    const isTheSamePassword = await bcrypt.compare(password, storedUser.senha);
+    const isTheSamePassword = await bcrypt.compare(password, storedUser.password);
     if (!isTheSamePassword) {
         return res.status(409).send(errorHelper.buildStandardResponse("Invalid password.", "invalid-password"));
     }
 
-    res.json(usersService.signin(storedUser));
+    const payload = {
+        email,
+        couple_id: storedUser.couple_id
+    };
+
+    req.session.user = payload;
+    res.json(payload);
 }
 
 export async function requestVerificationCode(req, res) {

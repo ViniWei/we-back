@@ -15,7 +15,7 @@ import {
 
 const router = Router();
 
-router.get("/", authMiddleware.verifyToken, getAll);
+router.get("/", authMiddleware.verifySession, getAll);
 router.get("/:id", get);
 router.post("/login", login);
 router.put("/changePassword/:id", changePassword);
