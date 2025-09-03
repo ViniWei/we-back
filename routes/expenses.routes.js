@@ -1,4 +1,5 @@
 import { Router } from "express";
+import authMiddleware from "../middleware/auth.middleware.js";
 import { findExpenseById, createExpense, getExpensesByCoupleId, updateExpense, deleteExpense } from "../controllers/expenses.controller.js";
 
 const router = Router();

@@ -1,4 +1,5 @@
 import { Router } from "express";
+import authMiddleware from "../middleware/auth.middleware.js";
 
 import { getAll, get, getOrCreateIfNotExists, create, getListsWithMoviesByCouple } from "../controllers/movies.controller.js";
 
