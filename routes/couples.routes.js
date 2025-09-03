@@ -7,7 +7,7 @@ import {
 
 const router = Router();
 
-router.get("/", getAll);
-router.get("/:id", get);
+router.get("/", authMiddleware.verifySession, getAll);
+router.get("/:id", authMiddleware.verifySession, get);
 
 export default router;

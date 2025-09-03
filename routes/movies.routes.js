@@ -4,10 +4,10 @@ import { getAll, get, getOrCreateIfNotExists, create, getListsWithMoviesByCouple
 
 const router = Router();
 
-router.get("/", getAll);
-router.get("/:id", get);
-router.get("/couple/:couple_id", getListsWithMoviesByCouple);
-router.post("/api", getOrCreateIfNotExists);
-router.post("/", create);
+router.get("/", authMiddleware.verifySession, getAll);
+router.get("/:id", authMiddleware.verifySession, get);
+router.get("/couple/:couple_id", authMiddleware.verifySession, getListsWithMoviesByCouple);
+router.post("/api", authMiddleware.verifySession, getOrCreateIfNotExists);
+router.post("/", authMiddleware.verifySession, create);
 
 export default router;

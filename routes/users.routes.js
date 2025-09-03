@@ -16,13 +16,13 @@ import {
 const router = Router();
 
 router.get("/", authMiddleware.verifySession, getAll);
-router.get("/:id", get);
+router.get("/:id", authMiddleware.verifySession, get);
 router.post("/login", login);
-router.put("/changePassword/:id", changePassword);
+router.put("/changePassword/:id", authMiddleware.verifySession, changePassword);
 router.post("/", create);
-router.patch("/:id", update);
-router.delete("/:id", remove);
-router.post("/verifyEmail", verifyEmailCode);
-router.post("/requestVerificationCode", requestVerificationCode);
+router.patch("/:id", authMiddleware.verifySession, update);
+router.delete("/:id", authMiddleware.verifySession, remove);
+router.post("/verifyEmail", authMiddleware.verifySession, verifyEmailCode);
+router.post("/requestVerificationCode", authMiddleware.verifySession, requestVerificationCode);
 
 export default router;

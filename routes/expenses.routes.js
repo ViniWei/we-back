@@ -3,10 +3,10 @@ import { findExpenseById, createExpense, getExpensesByCoupleId, updateExpense, d
 
 const router = Router();
 
-router.get("/:id", findExpenseById);
-router.get("/couple/:id", getExpensesByCoupleId);
-router.post("/", createExpense);
-router.put("/:id", updateExpense);
-router.delete("/:id", deleteExpense);
+router.get("/:id", authMiddleware.verifySession, findExpenseById);
+router.get("/couple/:id", authMiddleware.verifySession, getExpensesByCoupleId);
+router.post("/", authMiddleware.verifySession, createExpense);
+router.put("/:id", authMiddleware.verifySession, updateExpense);
+router.delete("/:id", authMiddleware.verifySession, deleteExpense);
 
 export default router;
