@@ -1,5 +1,4 @@
 import { Router } from "express";
-import authMiddleware from "../middleware/auth.middleware.js";
 import { getAll, get, create, addToList, update, removeFromList,deleteList } from "../controllers/movieLists.controller.js"; 
 
 const router = Router();

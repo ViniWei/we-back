@@ -7,7 +7,7 @@ const router = Router();
 
 router.get("/", authMiddleware.verifySession, getAll);
 router.get("/:id", authMiddleware.verifySession, get);
-router.get("/couple/:couple_id", authMiddleware.verifySession, getListsWithMoviesByCouple);
+router.get("/couple/", authMiddleware.verifySession, getListsWithMoviesByCouple);
 router.post("/api", authMiddleware.verifySession, getOrCreateIfNotExists);
 router.post("/", authMiddleware.verifySession, create);
 

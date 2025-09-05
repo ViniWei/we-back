@@ -6,17 +6,8 @@ import mailerService from "../services/mailer.service.js";
 import usersService from "../services/users.service.js";
 import errorHelper from "../helper/error.helper.js";
 
-export async function getAll(_req, res) {
-    try {
-        const users = await usersRepository.getAll();
-        res.json(users);
-    } catch (error) {
-        return res.status(500).send(errorHelper.buildStandardResponse("Error while fetching user.", "error-db-get-user", error));
-    }
-}
-
 export async function get(req, res) {
-    const { id } = req.params;
+    const { id } = req.session.user;
 
     let user;
     try {
@@ -83,7 +74,7 @@ export async function create(req, res) {
 }
 
 export async function remove(req, res) {
-    const { id } = req.params;
+    const { id } = req.session.user;
 
     let isUserStored;
     try {
@@ -107,7 +98,7 @@ export async function remove(req, res) {
 
 export async function update(req, res) {
     const payload = req.body;
-    const id = req.params.id;
+    const { id } = req.session.user;
 
     let isUserStored;
     try {
@@ -131,7 +122,7 @@ export async function update(req, res) {
 
 export async function changePassword(req, res) {
     const { oldPassword, newPassword } = req.body;
-    const id = req.params.id;
+    const { id } = req.session.user;
 
     let user;
     try {
@@ -180,6 +171,7 @@ export async function login(req, res) {
     }
 
     const payload = {
+        id: storedUser.id,
         email,
         couple_id: storedUser.couple_id
     };
@@ -189,7 +181,7 @@ export async function login(req, res) {
 }
 
 export async function requestVerificationCode(req, res) {
-    const { email } = req.body;
+    const { email } = req.session.user;
 
     let storedUser;
     try {

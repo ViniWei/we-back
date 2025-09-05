@@ -75,7 +75,7 @@ export async function create(req, res) {
 }
 
 export async function getListsWithMoviesByCouple(req, res) {
-    const { couple_id } = req.params;
+    const { couple_id } = req.session.user;
 
     try {
         const result = await moviesRepository.getListsWithMoviesByCouple(couple_id);

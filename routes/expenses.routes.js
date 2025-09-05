@@ -5,7 +5,7 @@ import { findExpenseById, createExpense, getExpensesByCoupleId, updateExpense, d
 const router = Router();
 
 router.get("/:id", authMiddleware.verifySession, findExpenseById);
-router.get("/couple/:id", authMiddleware.verifySession, getExpensesByCoupleId);
+router.get("/couple/", authMiddleware.verifySession, getExpensesByCoupleId);
 router.post("/", authMiddleware.verifySession, createExpense);
 router.put("/:id", authMiddleware.verifySession, updateExpense);
 router.delete("/:id", authMiddleware.verifySession, deleteExpense);

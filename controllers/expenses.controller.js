@@ -14,8 +14,10 @@ export async function findExpenseById(req, res) {
 };
 
 export async function getExpensesByCoupleId(req, res) {
+    const { couple_id } = req.session.user;
+
     try {
-        const expenses = await expensesRepository.getAllByCouple(req.params.id);
+        const expenses = await expensesRepository.getAllByCouple(couple_id);
         if (!expenses || expenses.length === 0) {
             return res.status(404).json({ message: "No expenses found for this couple" });
         }

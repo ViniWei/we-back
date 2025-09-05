@@ -2,7 +2,6 @@ import { Router } from "express";
 import authMiddleware from "../middleware/auth.middleware.js";
 
 import {
-    getAll,
     get,
     create,
     remove,
@@ -15,13 +14,12 @@ import {
 
 const router = Router();
 
-router.get("/", authMiddleware.verifySession, getAll);
-router.get("/:id", authMiddleware.verifySession, get);
+router.get("/", authMiddleware.verifySession, get);
 router.post("/login", login);
-router.put("/changePassword/:id", authMiddleware.verifySession, changePassword);
+router.put("/changePassword/", authMiddleware.verifySession, changePassword);
 router.post("/", create);
-router.patch("/:id", authMiddleware.verifySession, update);
-router.delete("/:id", authMiddleware.verifySession, remove);
+router.patch("/", authMiddleware.verifySession, update);
+router.delete("/", authMiddleware.verifySession, remove);
 router.post("/verifyEmail", authMiddleware.verifySession, verifyEmailCode);
 router.post("/requestVerificationCode", authMiddleware.verifySession, requestVerificationCode);
 
