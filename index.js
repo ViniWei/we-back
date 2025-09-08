@@ -15,14 +15,17 @@ const app = express();
 
 app.use(express.json());
 
-const mysqlStore = connectMysqlSession(session)
-const sessionStore = new mysqlStore({}, pool);
+const MysqlStore = connectMysqlSession(session)
+const sessionStore = new MysqlStore({}, pool);
 
 app.use(session({
     secret: process.env.SECRET_KEY,
     resave: false,
     saveUninitialized: true,
-    cookie: { secure: false },
+    cookie: { 
+        secure: false, 
+        maxAge: 1000 * 60 * 60 * 24 * 7
+    },
     store: sessionStore
 }));
 app.use(cors());
