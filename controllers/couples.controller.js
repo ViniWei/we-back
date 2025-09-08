@@ -2,7 +2,7 @@ import couplesRepository from "../repository/couples.repository.js";
 import errorHelper from "../helper/error.helper.js";
 
 export async function get(req, res) {
-    const { id } = req.params; 
+    const { id } = req.session.user; 
     
     let couple;
     try {
