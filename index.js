@@ -1,6 +1,8 @@
 import express from "express";
-
 import cors from "cors";
+import session from "express-session";
+import connectMysqlSession from "express-mysql-session";
+
 import usersRoutes from "./routes/users.routes.js";
 import couplesRoutes from "./routes/couples.routes.js";
 import moviesRoutes from "./routes/movies.routes.js";
@@ -13,6 +15,19 @@ const app = express();
 
 app.use(express.json());
 
+const MysqlStore = connectMysqlSession(session)
+const sessionStore = new MysqlStore({}, pool);
+
+app.use(session({
+    secret: process.env.SECRET_KEY,
+    resave: false,
+    saveUninitialized: true,
+    cookie: { 
+        secure: false, 
+        maxAge: 1000 * 60 * 60 * 24 * 7
+    },
+    store: sessionStore
+}));
 app.use(cors());
 
 app.use("/users", usersRoutes);

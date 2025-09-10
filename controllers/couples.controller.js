@@ -1,17 +1,8 @@
 import couplesRepository from "../repository/couples.repository.js";
 import errorHelper from "../helper/error.helper.js";
 
-export async function getAll(_req, res) {
-    try {
-        const couples = await couplesRepository.getAll();
-        res.json(couples);
-    } catch (error) {
-        res.status(500).send(errorHelper.buildStandardResponse("Error while fetching couples.", "error-db-get-couples", error));
-    }
-}
-
 export async function get(req, res) {
-    const { id } = req.params; 
+    const { id } = req.session.user; 
     
     let couple;
     try {
