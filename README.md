@@ -3,7 +3,9 @@
 ## Setup
 
 ### Install dependencies
+```bash
 npm i
+```
 
 ### Create .env
 ```bash
@@ -22,7 +24,11 @@ SMTP_AUTH_PASS  # SMTP password (or app password if you have MFA enabled)
 ```
 
 ## Run the project with hot reload
+```bash
 npm run serve
+```
 
 ## Lint (always use this command before commiting)
+```bash
 npm run lint
+```
