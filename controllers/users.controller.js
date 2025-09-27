@@ -251,7 +251,7 @@ export async function verifyEmailCode(req, res) {
 
 function generateVerificationCode() {
     const verificationCode = crypto.randomInt(0, 100000).toString().padStart(5, "0");
-    const expiresAt = new Date(Date.now() + 1 * 60 * 1000);
+    const expiresAt = new Date(Date.now() + 3 * 60 * 1000);
 
     const data = {
         verificationCode,
