@@ -4,7 +4,7 @@ import session from "express-session";
 import connectMysqlSession from "express-mysql-session";
 
 import usersRoutes from "./routes/users.routes.js";
-import couplesRoutes from "./routes/couples.routes.js";
+import groupsRoutes from "./routes/groups.routes.js";
 import moviesRoutes from "./routes/movies.routes.js";
 import movieListsRoutes from "./routes/movieLists.routes.js";
 import financesRoutes from "./routes/finances.routes.js";
@@ -33,7 +33,7 @@ app.use(
 app.use(cors());
 
 app.use("/users", usersRoutes);
-app.use("/couples", couplesRoutes);
+app.use("/groups", groupsRoutes);
 app.use("/movies", moviesRoutes);
 app.use("/movie-lists", movieListsRoutes);
 app.use("/finances", financesRoutes);
