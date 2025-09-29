@@ -115,7 +115,6 @@ export async function create(req, res) {
       );
   }
 
-  // Definir sessão do usuário após criação
   const payload = {
     id,
     email,
@@ -161,13 +160,15 @@ export async function remove(req, res) {
   try {
     await usersRepository.deleteAllById(id);
   } catch (error) {
-    return res.json(
-      errorHelper.buildStandardResponse(
-        "Error while removing user.",
-        "error-db-remove-user",
-        error
-      )
-    );
+    return res
+      .status(500)
+      .json(
+        errorHelper.buildStandardResponse(
+          "Error while removing user.",
+          "error-db-remove-user",
+          error
+        )
+      );
   }
 
   res.json("User deleted.");
@@ -316,7 +317,7 @@ export async function login(req, res) {
   const payload = {
     id: storedUser.id,
     email,
-    couple_id: storedUser.couple_id,
+    group_id: storedUser.group_id,
   };
 
   req.session.user = payload;
@@ -376,8 +377,6 @@ export async function requestVerificationCode(req, res) {
 
 export async function verifyEmailCode(req, res) {
   const { email, verification_code } = req.body;
-
-  console.log(email, verification_code);
 
   if (!email || !verification_code) {
     return res

@@ -6,7 +6,7 @@ export async function findFinanceById(req, res) {
   try {
     finance = await financesRepository.getById(req.params.id);
   } catch (error) {
-    res
+    return res
       .status(500)
       .send(
         errorHelper.buildStandardResponse(
@@ -22,7 +22,7 @@ export async function findFinanceById(req, res) {
       .status(404)
       .json(
         errorHelper.buildStandardResponse(
-          "No finances found for this couple",
+          "No finances found for this group",
           "finance-not-found"
         )
       );
@@ -31,19 +31,19 @@ export async function findFinanceById(req, res) {
   res.json(finance);
 }
 
-export async function getFinancesByCoupleId(req, res) {
-  const { couple_id } = req.session.user;
+export async function getFinancesByGroupId(req, res) {
+  const { group_id } = req.session.user;
 
   try {
-    const finances = await financesRepository.getAllByCouple(couple_id);
+    const finances = await financesRepository.getAllByGroup(group_id);
     if (!finances || finances.length === 0) {
       return res
         .status(404)
-        .json({ message: "No finances found for this couple" });
+        .json({ message: "No finances found for this group" });
     }
     res.json(finances);
   } catch (error) {
-    res
+    return res
       .status(500)
       .send(
         errorHelper.buildStandardResponse(
@@ -57,19 +57,17 @@ export async function getFinancesByCoupleId(req, res) {
 
 export async function createFinance(req, res) {
   const { description, amount, type, created_by } = req.body;
-  const { couple_id } = req.session.user;
+  const { group_id } = req.session.user;
 
-  if (!couple_id || !description || !amount || !type || !created_by) {
-    return res
-      .status(400)
-      .json({
-        message:
-          "Missing required fields: couple_id, description, amount, type and created_by",
-      });
+  if (!group_id || !description || !amount || !type || !created_by) {
+    return res.status(400).json({
+      message:
+        "Missing required fields: group_id, description, amount, type and created_by",
+    });
   }
 
   const payload = {
-    couple_id,
+    group_id,
     description,
     amount,
     type,

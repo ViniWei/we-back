@@ -3,7 +3,7 @@ import authMiddleware from "../middleware/auth.middleware.js";
 import {
   findFinanceById,
   createFinance,
-  getFinancesByCoupleId,
+  getFinancesByGroupId,
   updateFinance,
   deleteFinance,
 } from "../controllers/finances.controller.js";
@@ -11,7 +11,7 @@ import {
 const router = Router();
 
 router.get("/:id", authMiddleware.verifySession, findFinanceById);
-router.get("/couple/", authMiddleware.verifySession, getFinancesByCoupleId);
+router.get("/group/", authMiddleware.verifySession, getFinancesByGroupId);
 router.post("/", authMiddleware.verifySession, createFinance);
 router.put("/:id", authMiddleware.verifySession, updateFinance);
 router.delete("/:id", authMiddleware.verifySession, deleteFinance);
