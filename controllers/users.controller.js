@@ -414,7 +414,7 @@ export async function verifyEmailCode(req, res) {
 
   if (
     storedUser.verification_code !== verification_code ||
-    storedUser.verification_expires < Date.now()
+    new Date(storedUser.verification_expires) < new Date()
   ) {
     return res
       .status(403)
@@ -428,8 +428,6 @@ export async function verifyEmailCode(req, res) {
 
   const fieldsToUpdate = {
     email_verified: 1,
-    verification_code: "",
-    verification_expires: "",
   };
 
   try {
@@ -445,6 +443,13 @@ export async function verifyEmailCode(req, res) {
         )
       );
   }
+  const payload = {
+    id: storedUser.id,
+    email: storedUser.email,
+    group_id: storedUser.group_id,
+  };
+
+  req.session.user = payload;
 
   res.json({ message: "Email verified successfully." });
 }
