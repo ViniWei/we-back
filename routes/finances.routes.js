@@ -1,11 +1,11 @@
 import { Router } from "express";
 import authMiddleware from "../middleware/auth.middleware.js";
 import {
-  findFinanceById,
-  createFinance,
-  getFinancesByGroupId,
-  updateFinance,
-  deleteFinance,
+    findFinanceById,
+    createFinance,
+    getFinancesByGroupId,
+    updateFinance,
+    deleteFinance,
 } from "../controllers/finances.controller.js";
 
 const router = Router();

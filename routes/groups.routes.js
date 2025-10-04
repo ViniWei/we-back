@@ -2,9 +2,9 @@ import { Router } from "express";
 import authMiddleware from "../middleware/auth.middleware.js";
 
 import {
-  get,
-  generateInviteCode,
-  joinGroup,
+    get,
+    generateInviteCode,
+    joinGroup,
 } from "../controllers/groups.controller.js";
 
 const router = Router();

@@ -2,11 +2,11 @@ import { Router } from "express";
 import authMiddleware from "../middleware/auth.middleware.js";
 
 import {
-  getAll,
-  get,
-  getOrCreateIfNotExists,
-  create,
-  getListsWithMoviesByGroup,
+    getAll,
+    get,
+    getOrCreateIfNotExists,
+    create,
+    getListsWithMoviesByGroup,
 } from "../controllers/movies.controller.js";
 
 const router = Router();
