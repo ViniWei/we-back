@@ -52,6 +52,43 @@ export interface ITrips {
   modified_at?: Date;
 }
 
+// Interface for the current trips implementation
+export interface ITrip {
+  id?: number;
+  city: string;
+  start_date: Date | string;
+  end_date: Date | string;
+  description?: string;
+  status: string;
+  estimated_budget?: number;
+  icon?: string;
+  created_at?: Date;
+  updated_at?: Date;
+}
+
+export interface ITripWithPhotos extends ITrip {
+  photos: string[];
+}
+
+export interface ITripPhoto {
+  id?: number;
+  trip_id: number;
+  photo_url: string;
+  created_at?: Date;
+}
+
+export interface ITripCreateRequest {
+  city: string;
+  startDate: string;
+  endDate: string;
+  description?: string;
+  status: string;
+  estimated?: string;
+  icon?: string;
+}
+
+export interface ITripUpdateRequest extends Partial<ITripCreateRequest> {}
+
 export interface ISuggestions {
   id?: number;
   group_id: number;

@@ -2,13 +2,14 @@ import express from "express";
 import cors from "cors";
 import session from "express-session";
 
-import usersRoutes from "./routes/users.routes.js";
-import groupsRoutes from "./routes/groups.routes.js";
-import moviesRoutes from "./routes/movies.routes.js";
-import movieListsRoutes from "./routes/movieLists.routes.js";
-import financesRoutes from "./routes/finances.routes.js";
-import { pool } from "./config/database.js";
-import errorHelper from "./helper/error.helper.js";
+import usersRoutes from "./routes/users.routes";
+import groupsRoutes from "./routes/groups.routes";
+import moviesRoutes from "./routes/movies.routes";
+import movieListsRoutes from "./routes/movieLists.routes";
+import tripsRoutes from "./routes/trips.routes";
+import financesRoutes from "./routes/finances.routes";
+import { pool } from "./config/database";
+import errorHelper from "./helper/error.helper";
 
 const app = express();
 
@@ -32,6 +33,7 @@ app.use("/groups", groupsRoutes);
 app.use("/movies", moviesRoutes);
 app.use("/movie-lists", movieListsRoutes);
 app.use("/finances", financesRoutes);
+app.use("/trips", tripsRoutes);
 
 app.get("/", (_req: express.Request, res: express.Response) => {
   res.send("Api working.");
