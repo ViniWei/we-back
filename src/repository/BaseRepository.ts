@@ -83,12 +83,18 @@ export default class BaseRepository<T extends Record<string, any>>
   }
 
   async create(fieldAndValues: Partial<T>): Promise<T> {
-    const { fields, valueLocation } = formatDataToInsert(fieldAndValues);
+    // Adicionar created_at automaticamente se não existir
+    const dataWithTimestamp = {
+      ...fieldAndValues,
+      created_at: fieldAndValues.created_at || new Date(),
+    };
+
+    const { fields, valueLocation } = formatDataToInsert(dataWithTimestamp);
 
     const query = `INSERT INTO ${this.tableName} (${fields}) VALUES (${valueLocation})`;
     const [result] = await pool.query<ResultSetHeader>(
       query,
-      Object.values(fieldAndValues).filter(
+      Object.values(dataWithTimestamp).filter(
         (value) => value !== undefined && value !== null
       )
     );

@@ -178,7 +178,7 @@ export const login = async (req: Request, res: Response): Promise<Response> => {
 
     return res.json({
       message: "Login successful.",
-      sessionToken, // Token para React Native usar em headers
+      sessionToken,
       user: {
         id: storedUser.id?.toString(),
         name: storedUser.name,
