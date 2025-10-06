@@ -1,10 +1,13 @@
 {
   "name": "we-back",
   "version": "1.0.0",
-  "main": "index.js",
+  "main": "dist/index.js",
   "type": "module",
   "scripts": {
-    "serve": "npx nodemon --env-file=.env index.js",
+    "build": "tsc",
+    "dev": "tsx watch --env-file=.env src/index.ts",
+    "start": "node --env-file=.env dist/index.js",
+    "serve": "tsx watch --env-file=.env src/index.ts",
     "lint": "npx eslint --fix ."
   },
   "author": "",
@@ -13,6 +16,7 @@
   "dependencies": {
     "bcryptjs": "^3.0.2",
     "cors": "^2.8.5",
+    "dotenv": "^17.2.3",
     "express": "^5.1.0",
     "express-mysql-session": "^3.0.3",
     "express-session": "^1.18.2",
@@ -21,7 +25,20 @@
     "nodemailer": "^7.0.5"
   },
   "devDependencies": {
+    "@types/bcryptjs": "^2.4.6",
+    "@types/cors": "^2.8.17",
+    "@types/express": "^4.17.23",
+    "@types/express-mysql-session": "^3.0.6",
+    "@types/express-session": "^1.18.0",
+    "@types/handlebars": "^4.0.40",
+    "@types/mysql": "^2.15.26",
+    "@types/node": "^22.18.8",
+    "@types/nodemailer": "^6.4.20",
     "eslint": "^9.30.1",
-    "globals": "^16.3.0"
+    "globals": "^16.3.0",
+    "nodemon": "^3.1.7",
+    "ts-node": "^10.9.2",
+    "tsx": "^4.20.6",
+    "typescript": "^5.6.3"
   }
 }
