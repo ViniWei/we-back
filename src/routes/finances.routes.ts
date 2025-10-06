@@ -10,8 +10,8 @@ import {
 
 const router = Router();
 
-router.get("/:id", authMiddleware.verifySession, findFinanceById);
 router.get("/group/", authMiddleware.verifySession, getFinancesByGroupId);
+router.get("/:id", authMiddleware.verifySession, findFinanceById);
 router.post("/", authMiddleware.verifySession, createFinance);
 router.put("/:id", authMiddleware.verifySession, updateFinance);
 router.delete("/:id", authMiddleware.verifySession, deleteFinance);

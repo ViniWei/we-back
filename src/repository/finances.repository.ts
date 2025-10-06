@@ -1,5 +1,5 @@
-import BaseRepository from "./BaseRepository.js";
-import { IFinances } from "../types/database.js";
+import BaseRepository from "./BaseRepository";
+import { IFinances } from "../types/database";
 
 const tableName = "finances";
 const baseRepository = new BaseRepository<IFinances>(tableName);

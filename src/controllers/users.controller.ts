@@ -25,7 +25,18 @@ export const get = async (req: Request, res: Response): Promise<Response> => {
           errorHelper.buildStandardResponse("User not found.", "user-not-found")
         );
     }
-    return res.json(user);
+
+    return res.json({
+      id: user.id?.toString(),
+      name: user.name,
+      email: user.email,
+      emailVerified: user.email_verified === 1,
+      groupId: user.group_id?.toString(),
+      createdAt:
+        user.registration_date?.toISOString() || new Date().toISOString(),
+      updatedAt:
+        user.registration_date?.toISOString() || new Date().toISOString(),
+    });
   } catch (error) {
     return res
       .status(500)
@@ -93,10 +104,15 @@ export const create = async (
     };
 
     return res.json({
-      id: newUser.id,
-      email: newUser.email,
+      id: newUser.id?.toString(),
       name: newUser.name,
-      registration_date: newUser.registration_date,
+      email: newUser.email,
+      emailVerified: newUser.email_verified === 1,
+      groupId: newUser.group_id?.toString(),
+      createdAt:
+        newUser.registration_date?.toISOString() || new Date().toISOString(),
+      updatedAt:
+        newUser.registration_date?.toISOString() || new Date().toISOString(),
     });
   } catch (error) {
     return res
@@ -156,7 +172,27 @@ export const login = async (req: Request, res: Response): Promise<Response> => {
       group_id: storedUser.group_id,
     };
 
-    return res.json({ message: "Login successful." });
+    // Gerar um token de sessão simples para React Native
+    const sessionToken = `rn_session_${storedUser.id}_${Date.now()}`;
+    req.session.token = sessionToken;
+
+    return res.json({
+      message: "Login successful.",
+      sessionToken, // Token para React Native usar em headers
+      user: {
+        id: storedUser.id?.toString(),
+        name: storedUser.name,
+        email: storedUser.email,
+        emailVerified: storedUser.email_verified === 1,
+        groupId: storedUser.group_id?.toString(),
+        createdAt:
+          storedUser.registration_date?.toISOString() ||
+          new Date().toISOString(),
+        updatedAt:
+          storedUser.registration_date?.toISOString() ||
+          new Date().toISOString(),
+      },
+    });
   } catch (error) {
     return res
       .status(500)
