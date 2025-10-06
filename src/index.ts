@@ -16,17 +16,24 @@ const app = express();
 app.use(express.json());
 
 app.use(
+  cors({
+    origin: "http://localhost:8081", // URL específica do Expo
+    credentials: true, // Permite cookies/sessões
+  })
+);
+
+app.use(
   session({
     secret: process.env.SECRET_KEY || "default-secret",
     resave: false,
-    saveUninitialized: true,
+    saveUninitialized: false, // Não criar sessão vazia
     cookie: {
-      secure: false,
-      maxAge: 1000 * 60 * 60 * 24 * 7,
+      secure: false, // false para desenvolvimento (HTTP)
+      httpOnly: true, // Segurança: cookie não acessível via JS
+      maxAge: 1000 * 60 * 60 * 24 * 7, // 7 dias
     },
   })
 );
-app.use(cors());
 
 app.use("/users", usersRoutes);
 app.use("/groups", groupsRoutes);

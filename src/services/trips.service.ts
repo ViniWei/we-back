@@ -55,8 +55,6 @@ function validateTripCreateRequest(request: ITripCreateRequest): {
 } {
   const errors: string[] = [];
 
-  console.log("🔍 DEBUG - Validating trip create request:", request);
-
   if (!request.city || request.city.trim().length === 0) {
     errors.push("City is required and cannot be empty");
   }
@@ -78,30 +76,18 @@ function validateTripCreateRequest(request: ITripCreateRequest): {
     request.endDate &&
     !validateTripDates(request.startDate, request.endDate)
   ) {
-    console.log(
-      "🔍 DEBUG - Date validation failed:",
-      request.startDate,
-      request.endDate
-    );
     errors.push("Start date must be before or equal to end date");
   }
 
   if (request.status && !validateTripStatus(request.status)) {
-    console.log("🔍 DEBUG - Status validation failed:", request.status);
     errors.push(
       "Invalid status. Must be one of: Planejando, Em andamento, Finalizada, Cancelada"
     );
   }
 
   if (request.estimated && !validateBudget(request.estimated)) {
-    console.log("🔍 DEBUG - Budget validation failed:", request.estimated);
     errors.push("Invalid budget format");
   }
-
-  console.log("🔍 DEBUG - Validation result:", {
-    isValid: errors.length === 0,
-    errors,
-  });
 
   return {
     isValid: errors.length === 0,

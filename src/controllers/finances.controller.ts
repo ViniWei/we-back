@@ -2,6 +2,44 @@ import { Request, Response } from "express";
 
 import financesRepository from "../repository/finances.repository";
 import errorHelper from "../helper/error.helper";
+import { IFinances } from "../types/database";
+
+const financeTypeMap: { [key: number]: string } = {
+  1: "Alimentação",
+  2: "Transporte",
+  3: "Acomodação",
+  4: "Entretenimento",
+  5: "Compras",
+  6: "Contas",
+  7: "Saúde",
+  8: "Outros",
+};
+
+const financeTypeReverseMap: { [key: string]: number } = {
+  Alimentação: 1,
+  Transporte: 2,
+  Acomodação: 3,
+  Entretenimento: 4,
+  Compras: 5,
+  Contas: 6,
+  Saúde: 7,
+  Outros: 8,
+};
+
+function convertToFrontendFinance(finance: IFinances) {
+  const converted = {
+    id: finance.id?.toString() || "0",
+    descricao: finance.description,
+    valor: finance.amount,
+    categoria: financeTypeMap[finance.type_id] || "Outros",
+    data: finance.created_at
+      ? new Date(finance.created_at).toISOString().split("T")[0]
+      : new Date().toISOString().split("T")[0],
+    groupId: finance.group_id?.toString(),
+  };
+
+  return converted;
+}
 
 export const findFinanceById = async (
   req: Request,
@@ -19,7 +57,7 @@ export const findFinanceById = async (
           )
         );
     }
-    return res.json(finance);
+    return res.json(convertToFrontendFinance(finance));
   } catch (error) {
     return res
       .status(500)
@@ -52,17 +90,13 @@ export const getFinancesByGroupId = async (
 
   try {
     const finances = await financesRepository.getByGroupId(group_id);
+
     if (!finances || finances.length === 0) {
-      return res
-        .status(404)
-        .json(
-          errorHelper.buildStandardResponse(
-            "No finances found for this group",
-            "finance-not-found"
-          )
-        );
+      return res.json([]);
     }
-    return res.json(finances);
+
+    const convertedFinances = finances.map(convertToFrontendFinance);
+    return res.json(convertedFinances);
   } catch (error) {
     return res
       .status(500)
@@ -81,7 +115,7 @@ export const createFinance = async (
   res: Response
 ): Promise<Response> => {
   const financeData = req.body;
-  const { group_id } = req.session.user!;
+  const { group_id, id: user_id } = req.session.user!;
 
   if (!group_id) {
     return res
@@ -95,13 +129,19 @@ export const createFinance = async (
   }
 
   try {
+    // Converter dados do frontend para o formato do backend
     const finance = {
-      ...financeData,
       group_id,
+      description: financeData.descricao,
+      amount: financeData.valor,
+      type_id: financeTypeReverseMap[financeData.categoria] || 8, // Default: Outros
+      created_by: user_id,
+      created_at: new Date(),
+      modified_at: new Date(),
     };
 
     const newFinance = await financesRepository.create(finance);
-    return res.status(201).json(newFinance);
+    return res.status(201).json(convertToFrontendFinance(newFinance));
   } catch (error) {
     return res
       .status(500)
@@ -121,6 +161,7 @@ export const updateFinance = async (
 ): Promise<Response> => {
   const { id } = req.params;
   const updateData = req.body;
+  const { id: user_id } = req.session.user!;
 
   try {
     const existingFinance = await financesRepository.getById(Number(id));
@@ -135,8 +176,23 @@ export const updateFinance = async (
         );
     }
 
-    await financesRepository.update(Number(id), updateData);
-    return res.json({ message: "Finance updated successfully." });
+    // Converter dados do frontend para o formato do backend
+    const financeUpdateData: Partial<IFinances> = {};
+
+    if (updateData.descricao)
+      financeUpdateData.description = updateData.descricao;
+    if (updateData.valor) financeUpdateData.amount = updateData.valor;
+    if (updateData.categoria)
+      financeUpdateData.type_id =
+        financeTypeReverseMap[updateData.categoria] || existingFinance.type_id;
+
+    financeUpdateData.modified_by = user_id;
+    financeUpdateData.modified_at = new Date();
+
+    await financesRepository.update(Number(id), financeUpdateData);
+
+    const updatedFinance = await financesRepository.getById(Number(id));
+    return res.json(convertToFrontendFinance(updatedFinance!));
   } catch (error) {
     return res
       .status(500)
