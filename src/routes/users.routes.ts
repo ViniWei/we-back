@@ -5,7 +5,9 @@ import {
   get,
   create,
   login,
+  logout,
   verifyEmailCode,
+  changePassword,
 } from "../controllers/users.controller";
 
 const router = Router();
@@ -19,7 +21,9 @@ router.get("/session-status", (req, res) => {
   }
 });
 router.post("/login", login);
+router.post("/logout", authMiddleware.verifySession, logout);
 router.post("/", create);
 router.post("/verifyEmail", verifyEmailCode);
+router.patch("/change-password", authMiddleware.verifySession, changePassword);
 
 export default router;

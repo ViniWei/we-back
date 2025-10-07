@@ -1,8 +1,9 @@
-import BaseRepository from "./BaseRepository.js";
+import BaseRepository from "./BaseRepository";
 
 interface IGroup {
   id?: number;
-  [key: string]: any;
+  active?: boolean;
+  created_at?: Date;
 }
 
 const tableName = "groups";
@@ -16,7 +17,14 @@ const get = async (id: number): Promise<IGroup | undefined> => {
   return await baseRepository.getFirstByField("id", id);
 };
 
+const create = async (): Promise<IGroup> => {
+  return await baseRepository.create({
+    active: true,
+  });
+};
+
 export default {
   getAll,
   get,
+  create,
 };

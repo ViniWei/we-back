@@ -36,6 +36,12 @@ async function verifySession(
           const user = await usersRepository.getById(userId);
 
           if (user) {
+            console.log("Auth middleware - User found:", {
+              id: user.id,
+              email: user.email,
+              group_id: user.group_id,
+            });
+
             // Cria sessão temporária
             req.session.user = {
               id: user.id!,

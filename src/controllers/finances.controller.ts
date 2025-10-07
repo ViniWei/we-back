@@ -114,15 +114,25 @@ export const createFinance = async (
   req: Request,
   res: Response
 ): Promise<Response> => {
+  console.log("=== Create Finance Request ===");
+  console.log("Request body:", JSON.stringify(req.body, null, 2));
+  console.log("Session user:", req.session.user);
+
   const financeData = req.body;
   const { group_id, id: user_id } = req.session.user!;
 
+  console.log("Extracted group_id:", group_id);
+  console.log("Extracted user_id:", user_id);
+
   if (!group_id) {
+    console.log(
+      "ERROR: No group_id found for user - user needs to join/create a group first"
+    );
     return res
       .status(400)
       .send(
         errorHelper.buildStandardResponse(
-          "User has no group assigned.",
+          "Você precisa se vincular a um grupo antes de criar despesas. Vá para a tela de vínculo para gerar ou usar um código.",
           "no-group-assigned"
         )
       );
@@ -130,19 +140,30 @@ export const createFinance = async (
 
   try {
     // Converter dados do frontend para o formato do backend
+    const typeId = financeTypeReverseMap[financeData.categoria] || 8;
+    console.log("Category mapping:", financeData.categoria, "->", typeId);
+
     const finance = {
       group_id,
       description: financeData.descricao,
       amount: financeData.valor,
-      type_id: financeTypeReverseMap[financeData.categoria] || 8, // Default: Outros
+      type_id: typeId,
       created_by: user_id,
       created_at: new Date(),
       modified_at: new Date(),
     };
 
+    console.log("Finance object to create:", JSON.stringify(finance, null, 2));
+
     const newFinance = await financesRepository.create(finance);
-    return res.status(201).json(convertToFrontendFinance(newFinance));
+    console.log("Created finance:", JSON.stringify(newFinance, null, 2));
+
+    const responseData = convertToFrontendFinance(newFinance);
+    console.log("Response data:", JSON.stringify(responseData, null, 2));
+
+    return res.status(201).json(responseData);
   } catch (error) {
+    console.error("ERROR creating finance:", error);
     return res
       .status(500)
       .send(

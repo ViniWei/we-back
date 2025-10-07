@@ -2,16 +2,17 @@ import bcrypt from "bcryptjs";
 import crypto from "crypto";
 import { Request, Response } from "express";
 
-import usersRepository from "../repository/users.repository.js";
-import mailerService from "../services/mailer.service.js";
-import usersService from "../services/users.service.js";
-import errorHelper from "../helper/error.helper.js";
+import usersRepository from "../repository/users.repository";
+import mailerService from "../services/mailer.service";
+import usersService from "../services/users.service";
+import errorHelper from "../helper/error.helper";
 import {
   ICreateUserRequest,
   IVerifyEmailRequest,
   IVerificationCodeData,
-} from "../types/api.js";
-import { IUser } from "../types/database.js";
+  IChangePasswordRequest,
+} from "../types/api";
+import { IUser, CreateUser } from "../types/database";
 
 export const get = async (req: Request, res: Response): Promise<Response> => {
   const { id } = req.session.user!;
@@ -81,39 +82,46 @@ export const create = async (
 
     const { verificationCode, expiresAt } = generateVerificationCode();
 
-    const user: Partial<IUser> = {
+    const user: CreateUser = {
       name,
       email,
       password: usersService.encryptPassword(password),
       verification_code: verificationCode,
       verification_expires: expiresAt,
+      email_verified: 0, // Explicitly set to 0 (not verified)
     };
 
-    const newUser = await usersRepository.create(user as IUser);
+    const newUser = await usersRepository.create(user);
 
     try {
       await mailerService.sendVerificationEmail(email, verificationCode);
-    } catch (emailError) {
-      console.error("Email sending failed:", emailError);
-    }
+    } catch (emailError) {}
 
-    req.session.user = {
-      id: newUser.id!,
-      email: newUser.email,
-      group_id: newUser.group_id,
-    };
+    try {
+      req.session.user = {
+        id: newUser.id!,
+        email: newUser.email,
+        group_id: newUser.group_id || undefined,
+      };
+    } catch (sessionError) {}
 
-    return res.json({
+    const responseData = {
       id: newUser.id?.toString(),
       name: newUser.name,
       email: newUser.email,
       emailVerified: newUser.email_verified === 1,
-      groupId: newUser.group_id?.toString(),
+      groupId: newUser.group_id?.toString() || null,
       createdAt:
         newUser.registration_date?.toISOString() || new Date().toISOString(),
       updatedAt:
         newUser.registration_date?.toISOString() || new Date().toISOString(),
-    });
+    };
+
+    try {
+      return res.status(201).json(responseData);
+    } catch (responseError) {
+      throw responseError;
+    }
   } catch (error) {
     return res
       .status(500)
@@ -172,7 +180,6 @@ export const login = async (req: Request, res: Response): Promise<Response> => {
       group_id: storedUser.group_id,
     };
 
-    // Gerar um token de sessão simples para React Native
     const sessionToken = `rn_session_${storedUser.id}_${Date.now()}`;
     req.session.token = sessionToken;
 
@@ -267,6 +274,125 @@ export const verifyEmailCode = async (
         errorHelper.buildStandardResponse(
           "Error while verifying email.",
           "error-db-verify-email",
+          error
+        )
+      );
+  }
+};
+
+export const logout = async (
+  req: Request,
+  res: Response
+): Promise<Response> => {
+  return new Promise((resolve) => {
+    if (!req.session || !req.session.user) {
+      resolve(res.json({ message: "Logout successful - no active session." }));
+      return;
+    }
+
+    req.session.destroy((err: any) => {
+      if (err) {
+        resolve(
+          res
+            .status(500)
+            .send(
+              errorHelper.buildStandardResponse(
+                "Error while logging out.",
+                "error-logout",
+                err
+              )
+            )
+        );
+      } else {
+        resolve(res.json({ message: "Logout successful." }));
+      }
+    });
+  });
+};
+
+export const changePassword = async (
+  req: Request,
+  res: Response
+): Promise<Response> => {
+  const { currentPassword, newPassword }: IChangePasswordRequest = req.body;
+  const { id: userId } = req.session.user!;
+
+  if (!currentPassword || !newPassword) {
+    return res
+      .status(400)
+      .send(
+        errorHelper.buildStandardResponse(
+          "Current password and new password are required.",
+          "missing-passwords"
+        )
+      );
+  }
+
+  if (newPassword.length < 6) {
+    return res
+      .status(400)
+      .send(
+        errorHelper.buildStandardResponse(
+          "New password must be at least 6 characters long.",
+          "password-too-short"
+        )
+      );
+  }
+
+  try {
+    const user = await usersRepository.getById(userId);
+    if (!user) {
+      return res
+        .status(404)
+        .send(
+          errorHelper.buildStandardResponse("User not found.", "user-not-found")
+        );
+    }
+
+    const isCurrentPasswordValid = await bcrypt.compare(
+      currentPassword,
+      user.password
+    );
+
+    if (!isCurrentPasswordValid) {
+      return res
+        .status(400)
+        .send(
+          errorHelper.buildStandardResponse(
+            "Current password is incorrect.",
+            "invalid-current-password"
+          )
+        );
+    }
+
+    const isSamePassword = await bcrypt.compare(newPassword, user.password);
+    if (isSamePassword) {
+      return res
+        .status(400)
+        .send(
+          errorHelper.buildStandardResponse(
+            "New password must be different from current password.",
+            "same-password"
+          )
+        );
+    }
+
+    const hashedNewPassword = usersService.encryptPassword(newPassword);
+
+    await usersRepository.update("id", userId, {
+      password: hashedNewPassword,
+    });
+
+    return res.json({
+      message: "Password changed successfully.",
+    });
+  } catch (error) {
+    return res
+      .status(500)
+      .send(
+        errorHelper.buildStandardResponse(
+          "Error while changing password.",
+          "error-change-password",
           error
         )
       );
