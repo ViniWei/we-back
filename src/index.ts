@@ -8,6 +8,7 @@ import moviesRoutes from "./routes/movies.routes";
 import movieListsRoutes from "./routes/movieLists.routes";
 import tripsRoutes from "./routes/trips.routes";
 import financesRoutes from "./routes/finances.routes";
+import activitiesRoutes from "./routes/activities.routes";
 import { pool } from "./config/database";
 import errorHelper from "./helper/error.helper";
 
@@ -41,6 +42,7 @@ app.use("/movies", moviesRoutes);
 app.use("/movie-lists", movieListsRoutes);
 app.use("/finances", financesRoutes);
 app.use("/trips", tripsRoutes);
+app.use("/activities", activitiesRoutes);
 
 app.get("/", (_req: express.Request, res: express.Response) => {
   res.send("Api working.");

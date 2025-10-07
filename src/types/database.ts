@@ -103,7 +103,6 @@ export interface IActivities {
   suggestion_id?: number;
   event_name: string;
   date: Date;
-  time: string;
   location: string;
   description?: string;
   created_by: number;

@@ -7,18 +7,14 @@ async function verifySession(
   next: NextFunction
 ): Promise<void> {
   try {
-    // Primeiro tenta verificar sessão normal (cookies)
     if (req.session?.user) {
       next();
       return;
     }
 
-    // Se não há sessão via cookies, verifica header para React Native
     const sessionToken = req.headers["x-session-token"] as string;
 
     if (sessionToken) {
-      // Busca sessão por token (implementação simples)
-      // Extrai user_id do token
       const tokenParts = sessionToken.split("_");
 
       if (
@@ -29,20 +25,12 @@ async function verifySession(
         const userId = parseInt(tokenParts[2]);
 
         if (!isNaN(userId)) {
-          // Busca usuário no banco
           const usersRepository = (
             await import("../repository/users.repository")
           ).default;
           const user = await usersRepository.getById(userId);
 
           if (user) {
-            console.log("Auth middleware - User found:", {
-              id: user.id,
-              email: user.email,
-              group_id: user.group_id,
-            });
-
-            // Cria sessão temporária
             req.session.user = {
               id: user.id!,
               email: user.email,
