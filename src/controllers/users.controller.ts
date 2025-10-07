@@ -123,6 +123,7 @@ export const create = async (
       throw responseError;
     }
   } catch (error) {
+    console.error("Error while creating user:", error);
     return res
       .status(500)
       .send(

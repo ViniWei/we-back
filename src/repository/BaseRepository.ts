@@ -53,6 +53,31 @@ export default class BaseRepository<T extends Record<string, any>>
     this.tableName = tableName;
   }
 
+  private formatDateForMySQL(date: Date): string {
+    // Converter para formato MySQL DATETIME: YYYY-MM-DD HH:MM:SS
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+    const seconds = String(date.getSeconds()).padStart(2, '0');
+    
+    return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+  }
+
+  private formatDatesForMySQL(data: Record<string, any>): Record<string, any> {
+    const processed = { ...data };
+    
+    // Converter campos de data conhecidos para string MySQL
+    Object.keys(processed).forEach(key => {
+      if (processed[key] instanceof Date) {
+        processed[key] = this.formatDateForMySQL(processed[key]);
+      }
+    });
+    
+    return processed;
+  }
+
   async getAll(): Promise<T[]> {
     const [result] = await pool.query<RowDataPacket[]>(
       `SELECT * FROM ${this.tableName}`
@@ -83,21 +108,26 @@ export default class BaseRepository<T extends Record<string, any>>
   }
 
   async create(fieldAndValues: Partial<T>): Promise<T> {
-    // Adicionar created_at automaticamente se não existir
-    const dataWithTimestamp = {
-      ...fieldAndValues,
-      created_at: fieldAndValues.created_at || new Date(),
-    };
+    // Adicionar created_at automaticamente apenas se a interface tiver esse campo
+    // e não for para a tabela users (que usa registration_date)
+    const dataWithTimestamp = { ...fieldAndValues };
+    
+    // Só adiciona created_at se não for tabela users e se o campo não existir
+    if (this.tableName !== 'users' && !dataWithTimestamp.created_at) {
+      (dataWithTimestamp as any).created_at = this.formatDateForMySQL(new Date());
+    }
 
-    const { fields, valueLocation } = formatDataToInsert(dataWithTimestamp);
+    // Formatar datas para MySQL se existirem
+    const processedData = this.formatDatesForMySQL(dataWithTimestamp);
+
+    const { fields, valueLocation } = formatDataToInsert(processedData);
 
     const query = `INSERT INTO ${this.tableName} (${fields}) VALUES (${valueLocation})`;
-    const [result] = await pool.query<ResultSetHeader>(
-      query,
-      Object.values(dataWithTimestamp).filter(
-        (value) => value !== undefined && value !== null
-      )
+    const values = Object.values(processedData).filter(
+      (value) => value !== undefined && value !== null
     );
+    
+    const [result] = await pool.query<ResultSetHeader>(query, values);
     const insertedId = result.insertId;
 
     const [rows] = await pool.query<RowDataPacket[]>(
