@@ -6,7 +6,7 @@ interface IGroup {
   created_at?: Date;
 }
 
-const tableName = "groups";
+const tableName = "user_groups";
 const baseRepository = new BaseRepository<IGroup>(tableName);
 
 const getAll = async (): Promise<IGroup[]> => {

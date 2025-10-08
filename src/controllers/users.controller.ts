@@ -103,6 +103,7 @@ export const create = async (
         email: newUser.email,
         group_id: newUser.group_id || undefined,
       };
+      console.log("Session set for new user:", req.session.user);
     } catch (sessionError) {}
 
     const responseData = {
