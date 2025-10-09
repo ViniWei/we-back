@@ -1,6 +1,5 @@
 import { Request, Response } from "express";
 import crypto from "crypto";
-
 import groupsRepository from "../repository/groups.repository";
 import groupInviteRepository from "../repository/groupInvite.repository";
 import usersRepository from "../repository/users.repository";
@@ -76,7 +75,6 @@ export const generateInviteCode = async (
       message: "Invite code generated successfully.",
     });
   } catch (error) {
-    console.error("Error generating invite code:", error);
     return res
       .status(500)
       .send(

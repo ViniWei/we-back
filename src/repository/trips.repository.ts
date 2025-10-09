@@ -12,7 +12,6 @@ const getTripsWithPhotos = async (
 ): Promise<ITripWithPhotos[]> => {
   let finalWhereClause = whereClause;
 
-  // Add group filter if groupId is provided
   if (groupId) {
     const groupFilter = `t.group_id = ${pool.escape(groupId)}`;
     if (whereClause && whereClause.trim() !== "") {
@@ -63,7 +62,6 @@ const getTripsWithPhotos = async (
   })) as ITripWithPhotos[];
 };
 
-// Helper function to translate status from English to Portuguese
 const translateStatus = (status: string): string => {
   const statusMap: Record<string, string> = {
     planned: "Planejando",
@@ -103,7 +101,6 @@ const create = async (
   trip: Omit<ITrip, "id" | "created_at" | "updated_at">,
   groupId?: number
 ): Promise<ITrip> => {
-  // Map from frontend format to database format
   const tripData: Record<string, any> = {
     destination: trip.city,
     start_date: trip.start_date,
@@ -111,7 +108,7 @@ const create = async (
     description: trip.description,
     budget: trip.estimated_budget,
     status_id: await getStatusId(trip.status),
-    group_id: groupId, // Add group_id to trip
+    group_id: groupId,
     created_at: new Date(),
     modified_at: new Date(),
   };
@@ -125,7 +122,6 @@ const update = async (
   trip: Partial<ITrip>,
   groupId?: number
 ): Promise<ITripWithPhotos | null> => {
-  // Map from frontend format to database format
   const tripData: Record<string, any> = {};
 
   if (trip.city) tripData.destination = trip.city;
@@ -142,7 +138,6 @@ const update = async (
   return await getByIdWithPhotos(id, groupId);
 };
 
-// Helper function to get status_id from status name
 const getStatusId = async (status: string): Promise<number> => {
   const statusMap: Record<string, number> = {
     Planejando: 1,
@@ -160,7 +155,7 @@ const getStatusId = async (status: string): Promise<number> => {
     cancelled: 4,
   };
 
-  return statusMap[status] || 1; // Default to 'planned'
+  return statusMap[status] || 1;
 };
 
 const remove = async (id: number | string): Promise<ResultSetHeader> => {

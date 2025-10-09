@@ -103,7 +103,6 @@ export const create = async (
         email: newUser.email,
         group_id: newUser.group_id || undefined,
       };
-      console.log("Session set for new user:", req.session.user);
     } catch (sessionError) {}
 
     const responseData = {
@@ -124,7 +123,6 @@ export const create = async (
       throw responseError;
     }
   } catch (error) {
-    console.error("Error while creating user:", error);
     return res
       .status(500)
       .send(

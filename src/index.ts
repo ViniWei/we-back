@@ -18,8 +18,8 @@ app.use(express.json());
 
 app.use(
   cors({
-    origin: "http://localhost:8081", // URL específica do Expo
-    credentials: true, // Permite cookies/sessões
+    origin: "http://localhost:8081",
+    credentials: true,
   })
 );
 
@@ -27,11 +27,11 @@ app.use(
   session({
     secret: process.env.SECRET_KEY || "default-secret",
     resave: false,
-    saveUninitialized: false, // Não criar sessão vazia
+    saveUninitialized: false,
     cookie: {
-      secure: false, // false para desenvolvimento (HTTP)
-      httpOnly: true, // Segurança: cookie não acessível via JS
-      maxAge: 1000 * 60 * 60 * 24 * 7, // 7 dias
+      secure: false,
+      httpOnly: true,
+      maxAge: 1000 * 60 * 60 * 24 * 7,
     },
   })
 );

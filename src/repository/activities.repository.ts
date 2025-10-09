@@ -11,27 +11,13 @@ export class ActivitiesRepository extends BaseRepository<IActivities> {
   override async create(
     data: Omit<IActivities, "id" | "created_at" | "modified_at">
   ): Promise<IActivities> {
-    // Converter Date para formato MySQL DATETIME (YYYY-MM-DD HH:MM:SS)
     const processedData = {
       ...data,
       date: this.formatDateForMySQL(new Date(data.date)),
       created_at: this.formatDateForMySQL(new Date()),
     };
 
-    // Cast para Partial<IActivities> pois estamos formatando as datas para string
     return super.create(processedData as any);
-  }
-
-  private formatDateForMySQL(date: Date): string {
-    // Converter para formato MySQL DATETIME: YYYY-MM-DD HH:MM:SS
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, "0");
-    const day = String(date.getDate()).padStart(2, "0");
-    const hours = String(date.getHours()).padStart(2, "0");
-    const minutes = String(date.getMinutes()).padStart(2, "0");
-    const seconds = String(date.getSeconds()).padStart(2, "0");
-
-    return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
   }
 
   async findByGroupId(groupId: number): Promise<IActivities[]> {
@@ -95,7 +81,6 @@ export class ActivitiesRepository extends BaseRepository<IActivities> {
       modified_at: this.formatDateForMySQL(new Date()),
     };
 
-    // Se há um campo date sendo atualizado, formatá-lo também
     if (updateData.date) {
       updateData.date = this.formatDateForMySQL(
         new Date(updateData.date)
