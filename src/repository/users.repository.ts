@@ -16,6 +16,10 @@ const getByEmail = async (email: string): Promise<IUser | undefined> => {
   return await baseRepository.getFirstByField("email", email);
 };
 
+const getByGroupId = async (groupId: number): Promise<IUser[]> => {
+  return await baseRepository.getAllByField("group_id", groupId);
+};
+
 const deleteAllById = async (id: number): Promise<void> => {
   return await baseRepository.deleteAllByField("id", id);
 };
@@ -36,6 +40,7 @@ export default {
   getAll,
   getById,
   getByEmail,
+  getByGroupId,
   create,
   deleteAllById,
   update,

@@ -210,3 +210,85 @@ export const joinGroup = async (
       );
   }
 };
+
+export const getMembers = async (
+  req: Request,
+  res: Response
+): Promise<Response> => {
+  const { group_id } = req.session.user!;
+
+  if (!group_id) {
+    return res
+      .status(404)
+      .send(
+        errorHelper.buildStandardResponse(
+          "User is not part of any group.",
+          "user-not-in-group"
+        )
+      );
+  }
+
+  try {
+    const members = await usersRepository.getByGroupId(group_id);
+
+    // Remover informações sensíveis como senhas
+    const sanitizedMembers = members.map((member: any) => ({
+      id: member.id,
+      name: member.name,
+      email: member.email,
+      emailVerified: member.email_verified,
+      groupId: member.group_id,
+      createdAt: member.registration_date,
+      updatedAt: member.updated_at,
+    }));
+
+    return res.json({
+      members: sanitizedMembers,
+    });
+  } catch (error) {
+    return res
+      .status(500)
+      .send(
+        errorHelper.buildStandardResponse(
+          "Error while fetching group members.",
+          "error-db-get-members",
+          error
+        )
+      );
+  }
+};
+
+export const checkLinkStatus = async (
+  req: Request,
+  res: Response
+): Promise<Response> => {
+  const { id: userId } = req.session.user!;
+
+  try {
+    const user = await usersRepository.getById(userId);
+
+    if (user?.group_id) {
+      return res.json({
+        isLinked: true,
+        groupId: user.group_id,
+        message: "User is linked to a group",
+      });
+    } else {
+      return res.json({
+        isLinked: false,
+        groupId: null,
+        message: "User is not linked to any group",
+      });
+    }
+  } catch (error) {
+    return res
+      .status(500)
+      .send(
+        errorHelper.buildStandardResponse(
+          "Error while checking link status.",
+          "error-check-link-status",
+          error
+        )
+      );
+  }
+};
