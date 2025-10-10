@@ -11,6 +11,7 @@ import {
   IVerifyEmailRequest,
   IVerificationCodeData,
   IChangePasswordRequest,
+  IUpdateUserLanguageRequest,
 } from "../types/api";
 import { IUser, CreateUser } from "../types/database";
 
@@ -393,6 +394,54 @@ export const changePassword = async (
         errorHelper.buildStandardResponse(
           "Error while changing password.",
           "error-change-password",
+          error
+        )
+      );
+  }
+};
+
+export const updateUserLanguage = async (
+  req: Request,
+  res: Response
+): Promise<Response> => {
+  const { language_id }: IUpdateUserLanguageRequest = req.body;
+  const { id: userId } = req.session.user!;
+
+  if (!language_id) {
+    return res
+      .status(400)
+      .send(
+        errorHelper.buildStandardResponse(
+          "Language ID is required.",
+          "missing-language-id"
+        )
+      );
+  }
+
+  try {
+    const user = await usersRepository.getById(userId);
+    if (!user) {
+      return res
+        .status(404)
+        .send(
+          errorHelper.buildStandardResponse("User not found.", "user-not-found")
+        );
+    }
+
+    await usersRepository.update("id", userId, {
+      language_id: language_id,
+    });
+
+    return res.json({
+      message: "User language updated successfully.",
+    });
+  } catch (error) {
+    return res
+      .status(500)
+      .send(
+        errorHelper.buildStandardResponse(
+          "Error while updating user language.",
+          "error-update-language",
           error
         )
       );

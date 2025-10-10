@@ -26,6 +26,10 @@ export interface IUpdateUserRequest {
   email?: string;
 }
 
+export interface IUpdateUserLanguageRequest {
+  language_id: number;
+}
+
 export interface IChangePasswordRequest {
   currentPassword: string;
   newPassword: string;

@@ -8,6 +8,7 @@ import {
   logout,
   verifyEmailCode,
   changePassword,
+  updateUserLanguage,
 } from "../controllers/users.controller";
 
 const router = Router();
@@ -25,5 +26,6 @@ router.post("/logout", authMiddleware.verifySession, logout);
 router.post("/", create);
 router.post("/verifyEmail", verifyEmailCode);
 router.patch("/change-password", authMiddleware.verifySession, changePassword);
+router.patch("/language", authMiddleware.verifySession, updateUserLanguage);
 
 export default router;

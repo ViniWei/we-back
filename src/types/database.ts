@@ -9,6 +9,7 @@ export interface IUser {
   email_verified?: number;
   group_invite_id?: number;
   group_id?: number;
+  language_id?: number;
 }
 
 export interface IUserGroups {
@@ -208,6 +209,7 @@ export type UpdateUser = Partial<
     | "verification_code"
     | "verification_expires"
     | "email_verified"
+    | "language_id"
   >
 >;
 
