@@ -6,20 +6,7 @@ import {
   ITripCreateRequest,
   ITripUpdateRequest,
   ITrip,
-  ISessionUser,
 } from "../types/database";
-
-interface AuthenticatedRequest extends Request {
-  session: {
-    user?: ISessionUser;
-  };
-}
-
-declare module "express-session" {
-  interface SessionData {
-    user?: ISessionUser;
-  }
-}
 
 function parseTripFromRequest(
   body: ITripCreateRequest | ITripUpdateRequest
@@ -61,7 +48,7 @@ export async function getAllTrips(
   res: Response
 ): Promise<Response | void> {
   try {
-    const groupId = req.session.user?.group_id;
+    const groupId = (req as any).user?.group_id;
     if (!groupId) {
       return res
         .status(400)
@@ -108,7 +95,7 @@ export async function createTrip(
   }
 
   try {
-    const groupId = req.session.user?.group_id;
+    const groupId = (req as any).user?.group_id;
     if (!groupId) {
       return res
         .status(400)
@@ -162,7 +149,7 @@ export async function getUpcomingTrips(
   res: Response
 ): Promise<Response | void> {
   try {
-    const groupId = req.session.user?.group_id;
+    const groupId = (req as any).user?.group_id;
     if (!groupId) {
       return res
         .status(400)
@@ -197,7 +184,7 @@ export async function getPastTrips(
   res: Response
 ): Promise<Response | void> {
   try {
-    const groupId = req.session.user?.group_id;
+    const groupId = (req as any).user?.group_id;
     if (!groupId) {
       return res
         .status(400)
@@ -233,7 +220,7 @@ export async function getTripById(
 ): Promise<Response | void> {
   const { id } = req.params;
   try {
-    const groupId = req.session.user?.group_id;
+    const groupId = (req as any).user?.group_id;
     if (!groupId) {
       return res
         .status(400)
@@ -287,7 +274,7 @@ export async function updateTrip(
   }
 
   try {
-    const groupId = req.session.user?.group_id;
+    const groupId = (req as any).user?.group_id;
     if (!groupId) {
       return res
         .status(400)
@@ -375,7 +362,7 @@ export async function addPhotosToTrip(
   }
 
   try {
-    const groupId = req.session.user?.group_id;
+    const groupId = (req as any).user?.group_id;
     if (!groupId) {
       return res
         .status(400)

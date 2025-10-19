@@ -11,10 +11,10 @@ import {
 
 const router = Router();
 
-router.get("/members", authMiddleware.verifySession, getMembers);
-router.get("/check-link-status", authMiddleware.verifySession, checkLinkStatus);
-router.get("/:id", authMiddleware.verifySession, get);
-router.post("/generate-code", authMiddleware.verifySession, generateInviteCode);
-router.post("/join", authMiddleware.verifySession, joinGroup);
+router.get("/members", authMiddleware.verifyToken, getMembers);
+router.get("/check-link-status", authMiddleware.verifyToken, checkLinkStatus);
+router.get("/:id", authMiddleware.verifyToken, get);
+router.post("/generate-code", authMiddleware.verifyToken, generateInviteCode);
+router.post("/join", authMiddleware.verifyToken, joinGroup);
 
 export default router;

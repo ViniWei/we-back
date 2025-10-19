@@ -58,7 +58,7 @@ export const getByGroupId = async (
   req: Request,
   res: Response
 ): Promise<Response> => {
-  const { group_id } = req.session.user!;
+  const { group_id } = (req as any).user;
 
   if (!group_id) {
     return res
@@ -91,7 +91,7 @@ export const getByGroupIdWithMovies = async (
   req: Request,
   res: Response
 ): Promise<Response> => {
-  const { group_id } = req.session.user!;
+  const { group_id } = (req as any).user;
 
   if (!group_id) {
     return res
@@ -150,7 +150,7 @@ export const create = async (
   res: Response
 ): Promise<Response> => {
   const listData = req.body;
-  const { group_id } = req.session.user!;
+  const { group_id } = (req as any).user;
 
   if (!group_id) {
     return res

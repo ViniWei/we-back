@@ -1,12 +1,15 @@
 import { Request, Response } from "express";
-import { ISessionUser } from "./database";
+
+// Tipos JWT
+export interface IJWTUser {
+  id: number;
+  email: string;
+  group_id?: number;
+}
 
 declare module "express-serve-static-core" {
   interface Request {
-    session: {
-      user?: ISessionUser;
-      [key: string]: any;
-    };
+    user?: IJWTUser;
   }
 }
 

@@ -5,7 +5,7 @@ import authMiddleware from "../middleware/auth.middleware";
 const router = Router();
 const activitiesController = new ActivitiesController();
 
-router.use(authMiddleware.verifySession);
+router.use(authMiddleware.verifyToken);
 
 router.post("/", activitiesController.createActivity);
 

@@ -1,6 +1,5 @@
 import express from "express";
 import cors from "cors";
-import session from "express-session";
 
 import usersRoutes from "./routes/users.routes";
 import groupsRoutes from "./routes/groups.routes";
@@ -20,19 +19,6 @@ app.use(
   cors({
     origin: "http://localhost:8081",
     credentials: true,
-  })
-);
-
-app.use(
-  session({
-    secret: process.env.SECRET_KEY || "default-secret",
-    resave: false,
-    saveUninitialized: false,
-    cookie: {
-      secure: false,
-      httpOnly: true,
-      maxAge: 1000 * 60 * 60 * 24 * 7,
-    },
   })
 );
 

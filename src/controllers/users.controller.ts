@@ -16,7 +16,7 @@ import {
 import { IUser, CreateUser } from "../types/database";
 
 export const get = async (req: Request, res: Response): Promise<Response> => {
-  const { id } = req.session.user!;
+  const { id } = (req as any).user;
 
   try {
     const user = await usersRepository.getById(id);
@@ -98,24 +98,30 @@ export const create = async (
       await mailerService.sendVerificationEmail(email, verificationCode);
     } catch (emailError) {}
 
-    try {
-      req.session.user = {
-        id: newUser.id!,
-        email: newUser.email,
-        group_id: newUser.group_id || undefined,
-      };
-    } catch (sessionError) {}
+    // Importa o helper JWT
+    const jwtHelper = (await import("../helper/jwt.helper")).default;
+
+    // Gera tokens JWT para o novo usuário
+    const { accessToken, refreshToken } = jwtHelper.generateTokens({
+      userId: newUser.id!,
+      email: newUser.email,
+      groupId: newUser.group_id,
+    });
 
     const responseData = {
-      id: newUser.id?.toString(),
-      name: newUser.name,
-      email: newUser.email,
-      emailVerified: newUser.email_verified === 1,
-      groupId: newUser.group_id?.toString() || null,
-      createdAt:
-        newUser.registration_date?.toISOString() || new Date().toISOString(),
-      updatedAt:
-        newUser.registration_date?.toISOString() || new Date().toISOString(),
+      accessToken,
+      refreshToken,
+      user: {
+        id: newUser.id?.toString(),
+        name: newUser.name,
+        email: newUser.email,
+        emailVerified: newUser.email_verified === 1,
+        groupId: newUser.group_id?.toString() || null,
+        createdAt:
+          newUser.registration_date?.toISOString() || new Date().toISOString(),
+        updatedAt:
+          newUser.registration_date?.toISOString() || new Date().toISOString(),
+      },
     };
 
     try {
@@ -175,18 +181,20 @@ export const login = async (req: Request, res: Response): Promise<Response> => {
         );
     }
 
-    req.session.user = {
-      id: storedUser.id!,
-      email: storedUser.email,
-      group_id: storedUser.group_id,
-    };
+    // Importa o helper JWT
+    const jwtHelper = (await import("../helper/jwt.helper")).default;
 
-    const sessionToken = `rn_session_${storedUser.id}_${Date.now()}`;
-    req.session.token = sessionToken;
+    // Gera tokens JWT
+    const { accessToken, refreshToken } = jwtHelper.generateTokens({
+      userId: storedUser.id!,
+      email: storedUser.email,
+      groupId: storedUser.group_id,
+    });
 
     return res.json({
       message: "Login successful.",
-      sessionToken,
+      accessToken,
+      refreshToken,
       user: {
         id: storedUser.id?.toString(),
         name: storedUser.name,
@@ -261,12 +269,6 @@ export const verifyEmailCode = async (
       verification_expires: undefined,
     });
 
-    req.session.user = {
-      id: storedUser.id!,
-      email: storedUser.email,
-      group_id: storedUser.group_id,
-    };
-
     return res.json({ message: "Email verified successfully." });
   } catch (error) {
     return res
@@ -285,30 +287,9 @@ export const logout = async (
   req: Request,
   res: Response
 ): Promise<Response> => {
-  return new Promise((resolve) => {
-    if (!req.session || !req.session.user) {
-      resolve(res.json({ message: "Logout successful - no active session." }));
-      return;
-    }
-
-    req.session.destroy((err: any) => {
-      if (err) {
-        resolve(
-          res
-            .status(500)
-            .send(
-              errorHelper.buildStandardResponse(
-                "Error while logging out.",
-                "error-logout",
-                err
-              )
-            )
-        );
-      } else {
-        resolve(res.json({ message: "Logout successful." }));
-      }
-    });
-  });
+  // Com JWT, o logout é feito no cliente removendo os tokens
+  // Aqui podemos adicionar lógica de blacklist de tokens se necessário no futuro
+  return res.json({ message: "Logout successful." });
 };
 
 export const changePassword = async (
@@ -316,7 +297,7 @@ export const changePassword = async (
   res: Response
 ): Promise<Response> => {
   const { currentPassword, newPassword }: IChangePasswordRequest = req.body;
-  const { id: userId } = req.session.user!;
+  const { id: userId } = (req as any).user;
 
   if (!currentPassword || !newPassword) {
     return res
@@ -405,7 +386,7 @@ export const updateUserLanguage = async (
   res: Response
 ): Promise<Response> => {
   const { language_id }: IUpdateUserLanguageRequest = req.body;
-  const { id: userId } = req.session.user!;
+  const { id: userId } = (req as any).user;
 
   if (!language_id) {
     return res
@@ -442,6 +423,46 @@ export const updateUserLanguage = async (
         errorHelper.buildStandardResponse(
           "Error while updating user language.",
           "error-update-language",
+          error
+        )
+      );
+  }
+};
+
+export const refreshToken = async (
+  req: Request,
+  res: Response
+): Promise<Response> => {
+  const { refreshToken } = req.body;
+
+  if (!refreshToken) {
+    return res
+      .status(400)
+      .send(
+        errorHelper.buildStandardResponse(
+          "Refresh token is required.",
+          "missing-refresh-token"
+        )
+      );
+  }
+
+  try {
+    // Importa o helper JWT
+    const jwtHelper = (await import("../helper/jwt.helper")).default;
+
+    // Verifica e gera novo access token
+    const newAccessToken = jwtHelper.refreshAccessToken(refreshToken);
+
+    return res.json({
+      accessToken: newAccessToken,
+    });
+  } catch (error) {
+    return res
+      .status(401)
+      .send(
+        errorHelper.buildStandardResponse(
+          "Invalid or expired refresh token.",
+          "invalid-refresh-token",
           error
         )
       );

@@ -10,9 +10,9 @@ import {
 
 const router = Router();
 
-router.get("/", authMiddleware.verifySession, getAll);
-router.get("/:id", authMiddleware.verifySession, get);
-router.post("/", authMiddleware.verifySession, create);
-router.post("/api", authMiddleware.verifySession, createFromApi);
+router.get("/", authMiddleware.verifyToken, getAll);
+router.get("/:id", authMiddleware.verifyToken, get);
+router.post("/", authMiddleware.verifyToken, create);
+router.post("/api", authMiddleware.verifyToken, createFromApi);
 
 export default router;

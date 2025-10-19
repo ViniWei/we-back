@@ -75,7 +75,7 @@ export const getFinancesByGroupId = async (
   req: Request,
   res: Response
 ): Promise<Response> => {
-  const { group_id } = req.session.user!;
+  const { group_id } = (req as any).user;
 
   if (!group_id) {
     return res
@@ -115,7 +115,7 @@ export const createFinance = async (
   res: Response
 ): Promise<Response> => {
   const financeData = req.body;
-  const { group_id, id: user_id } = req.session.user!;
+  const { group_id, id: user_id } = (req as any).user;
 
   if (!group_id) {
     return res
@@ -165,7 +165,7 @@ export const updateFinance = async (
 ): Promise<Response> => {
   const { id } = req.params;
   const updateData = req.body;
-  const { id: user_id } = req.session.user!;
+  const { id: user_id } = (req as any).user;
 
   try {
     const existingFinance = await financesRepository.getById(Number(id));

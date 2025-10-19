@@ -7,7 +7,7 @@ import errorHelper from "../helper/error.helper";
 import { IJoinGroupRequest } from "../types/api";
 
 export const get = async (req: Request, res: Response): Promise<Response> => {
-  const { id } = req.session.user!;
+  const { id } = (req as any).user;
 
   try {
     const group = await groupsRepository.get(id);
@@ -39,7 +39,7 @@ export const generateInviteCode = async (
   req: Request,
   res: Response
 ): Promise<Response> => {
-  const { id: userId } = req.session.user!;
+  const { id: userId } = (req as any).user;
 
   try {
     // Verificar se já existe um convite ativo para este usuário
@@ -92,7 +92,7 @@ export const joinGroup = async (
   res: Response
 ): Promise<Response> => {
   const { code }: IJoinGroupRequest = req.body;
-  const { id: userId } = req.session.user!;
+  const { id: userId } = (req as any).user;
 
   if (!code) {
     return res
@@ -188,7 +188,8 @@ export const joinGroup = async (
       group_id: groupId,
     });
 
-    req.session.user!.group_id = groupId;
+    // Com JWT não precisamos atualizar a sessão, o token já contém os dados
+    // O frontend deve atualizar o perfil após o join
 
     await groupInviteRepository.update(invite.id!, { status_id: 2 });
 
@@ -213,7 +214,7 @@ export const getMembers = async (
   req: Request,
   res: Response
 ): Promise<Response> => {
-  const { group_id } = req.session.user!;
+  const { group_id } = (req as any).user;
 
   if (!group_id) {
     return res
@@ -260,7 +261,7 @@ export const checkLinkStatus = async (
   req: Request,
   res: Response
 ): Promise<Response> => {
-  const { id: userId } = req.session.user!;
+  const { id: userId } = (req as any).user;
 
   try {
     const user = await usersRepository.getById(userId);

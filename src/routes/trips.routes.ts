@@ -30,7 +30,7 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage: storage });
 
-router.use(authMiddleware.verifySession);
+router.use(authMiddleware.verifyToken);
 
 router.get("/", getAllTrips);
 router.get("/upcoming", getUpcomingTrips);
