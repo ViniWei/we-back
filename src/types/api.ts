@@ -81,7 +81,7 @@ export interface IGenerateCodeResponse {
 
 export interface IJoinGroupResponse {
   message: string;
-  group_id: number;
+  groupId: number;
 }
 
 export type ControllerFunction = (req: Request, res: Response) => Promise<any>;

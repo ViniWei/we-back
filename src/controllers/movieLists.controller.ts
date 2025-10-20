@@ -1,8 +1,8 @@
 import { Request, Response } from "express";
 
-import movieListsRepository from "../repository/movieLists.repository";
-import movieListItemsRepository from "../repository/movieListItems.repository";
-import moviesRepository from "../repository/movies.repository";
+import movieListsRepository from "../repositories/movieLists.repository";
+import movieListItemsRepository from "../repositories/movieListItems.repository";
+import moviesRepository from "../repositories/movies.repository";
 import errorHelper from "../helper/error.helper";
 
 export const getAll = async (
@@ -58,7 +58,7 @@ export const getByGroupId = async (
   req: Request,
   res: Response
 ): Promise<Response> => {
-  const { group_id } = (req as any).user;
+  const { groupId: group_id } = (req as any).user;
 
   if (!group_id) {
     return res
@@ -91,7 +91,7 @@ export const getByGroupIdWithMovies = async (
   req: Request,
   res: Response
 ): Promise<Response> => {
-  const { group_id } = (req as any).user;
+  const { groupId: group_id } = (req as any).user;
 
   if (!group_id) {
     return res
@@ -112,7 +112,8 @@ export const getByGroupIdWithMovies = async (
         const listItems = await movieListItemsRepository.getByListId(list.id!);
         const movies = await Promise.all(
           listItems.map(async (item) => {
-            return await moviesRepository.getById(item.movie_id);
+            const movie = await moviesRepository.getById(item.movieId!);
+            return movie ? { ...movie, addedAt: item.createdAt } : undefined;
           })
         );
 
@@ -124,8 +125,9 @@ export const getByGroupIdWithMovies = async (
             .map((movie) => ({
               id: movie!.id!.toString(),
               title: movie!.title,
-              poster_path: movie!.poster_path,
+              poster_path: movie!.posterPath,
               synopsis: movie!.synopsis,
+              addedAt: movie!.addedAt,
             })),
         };
       })
@@ -150,7 +152,7 @@ export const create = async (
   res: Response
 ): Promise<Response> => {
   const listData = req.body;
-  const { group_id } = (req as any).user;
+  const { groupId: group_id } = (req as any).user;
 
   if (!group_id) {
     return res

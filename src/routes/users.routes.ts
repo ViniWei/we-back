@@ -10,6 +10,7 @@ import {
   changePassword,
   updateUserLanguage,
   refreshToken,
+  requestVerificationCode,
 } from "../controllers/users.controller";
 
 const router = Router();
@@ -19,6 +20,11 @@ router.post("/login", login);
 router.post("/logout", authMiddleware.verifyToken, logout);
 router.post("/", create);
 router.post("/verifyEmail", verifyEmailCode);
+router.post(
+  "/requestVerificationCode",
+  authMiddleware.verifyToken,
+  requestVerificationCode
+);
 router.post("/refresh-token", refreshToken);
 router.patch("/change-password", authMiddleware.verifyToken, changePassword);
 router.patch("/language", authMiddleware.verifyToken, updateUserLanguage);

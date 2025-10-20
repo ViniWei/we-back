@@ -3,21 +3,21 @@ export interface IUser {
   name: string;
   email: string;
   password: string;
-  registration_date?: Date;
-  verification_code?: string;
-  verification_expires?: Date;
-  email_verified?: number;
-  group_invite_id?: number;
-  group_id?: number;
-  language_id?: number;
+  registrationDate?: Date;
+  verificationCode?: string;
+  verificationExpires?: Date;
+  emailVerified?: number;
+  groupInviteId?: number;
+  groupId?: number;
+  languageId?: number;
 }
 
 export interface IUserGroups {
   id?: number;
-  user_id: number;
-  group_id: number;
-  active: boolean;
-  created_at?: Date;
+  active?: number;
+  groupImagePath?: string;
+  relationshipStartDate?: Date;
+  createdAt?: Date;
 }
 
 export interface IGroupInviteStatus {
@@ -198,26 +198,28 @@ export interface ISessionUser {
   group_id?: number;
 }
 
-export type CreateUser = Omit<IUser, "id" | "registration_date">;
+export type CreateUser = Omit<IUser, "id" | "registrationDate">;
 export type UpdateUser = Partial<
   Pick<
     IUser,
     | "name"
     | "email"
     | "password"
-    | "group_id"
-    | "verification_code"
-    | "verification_expires"
-    | "email_verified"
-    | "language_id"
+    | "groupId"
+    | "verificationCode"
+    | "verificationExpires"
+    | "emailVerified"
+    | "languageId"
   >
 >;
 
 export type CreateGroupInvite = Omit<IGroupInvite, "id">;
 export type UpdateGroupInvite = Partial<Pick<IGroupInvite, "status_id">>;
 
-export type CreateUserGroup = Omit<IUserGroups, "id" | "created_at">;
-export type UpdateUserGroup = Partial<Pick<IUserGroups, "active">>;
+export type CreateUserGroup = Omit<IUserGroups, "id" | "createdAt">;
+export type UpdateUserGroup = Partial<
+  Pick<IUserGroups, "active" | "groupImagePath" | "relationshipStartDate">
+>;
 
 export interface IVerificationCodeData {
   verificationCode: string;

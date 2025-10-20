@@ -2,7 +2,7 @@ import bcrypt from "bcryptjs";
 import crypto from "crypto";
 import { Request, Response } from "express";
 
-import usersRepository from "../repository/users.repository";
+import usersRepository from "../repositories/users.repository";
 import mailerService from "../services/mailer.service";
 import usersService from "../services/users.service";
 import errorHelper from "../helper/error.helper";
@@ -13,7 +13,7 @@ import {
   IChangePasswordRequest,
   IUpdateUserLanguageRequest,
 } from "../types/api";
-import { IUser, CreateUser } from "../types/database";
+import { CreateUser } from "../types/database";
 
 export const get = async (req: Request, res: Response): Promise<Response> => {
   const { id } = (req as any).user;
@@ -32,12 +32,12 @@ export const get = async (req: Request, res: Response): Promise<Response> => {
       id: user.id?.toString(),
       name: user.name,
       email: user.email,
-      emailVerified: user.email_verified === 1,
-      groupId: user.group_id?.toString(),
+      emailVerified: user.emailVerified === 1,
+      groupId: user.groupId?.toString(),
       createdAt:
-        user.registration_date?.toISOString() || new Date().toISOString(),
+        user.registrationDate?.toISOString() || new Date().toISOString(),
       updatedAt:
-        user.registration_date?.toISOString() || new Date().toISOString(),
+        user.registrationDate?.toISOString() || new Date().toISOString(),
     });
   } catch (error) {
     return res
@@ -83,13 +83,13 @@ export const create = async (
 
     const { verificationCode, expiresAt } = generateVerificationCode();
 
-    const user: CreateUser = {
+    const user: any = {
       name,
       email,
       password: usersService.encryptPassword(password),
-      verification_code: verificationCode,
-      verification_expires: expiresAt,
-      email_verified: 0, // Explicitly set to 0 (not verified)
+      verificationCode: verificationCode,
+      verificationExpires: expiresAt,
+      emailVerified: 0,
     };
 
     const newUser = await usersRepository.create(user);
@@ -98,14 +98,12 @@ export const create = async (
       await mailerService.sendVerificationEmail(email, verificationCode);
     } catch (emailError) {}
 
-    // Importa o helper JWT
     const jwtHelper = (await import("../helper/jwt.helper")).default;
 
-    // Gera tokens JWT para o novo usuário
     const { accessToken, refreshToken } = jwtHelper.generateTokens({
       userId: newUser.id!,
       email: newUser.email,
-      groupId: newUser.group_id,
+      groupId: newUser.groupId,
     });
 
     const responseData = {
@@ -115,12 +113,12 @@ export const create = async (
         id: newUser.id?.toString(),
         name: newUser.name,
         email: newUser.email,
-        emailVerified: newUser.email_verified === 1,
-        groupId: newUser.group_id?.toString() || null,
+        emailVerified: newUser.emailVerified === 1,
+        groupId: newUser.groupId?.toString() || null,
         createdAt:
-          newUser.registration_date?.toISOString() || new Date().toISOString(),
+          newUser.registrationDate?.toISOString() || new Date().toISOString(),
         updatedAt:
-          newUser.registration_date?.toISOString() || new Date().toISOString(),
+          newUser.registrationDate?.toISOString() || new Date().toISOString(),
       },
     };
 
@@ -181,14 +179,12 @@ export const login = async (req: Request, res: Response): Promise<Response> => {
         );
     }
 
-    // Importa o helper JWT
     const jwtHelper = (await import("../helper/jwt.helper")).default;
 
-    // Gera tokens JWT
     const { accessToken, refreshToken } = jwtHelper.generateTokens({
       userId: storedUser.id!,
       email: storedUser.email,
-      groupId: storedUser.group_id,
+      groupId: storedUser.groupId,
     });
 
     return res.json({
@@ -199,13 +195,13 @@ export const login = async (req: Request, res: Response): Promise<Response> => {
         id: storedUser.id?.toString(),
         name: storedUser.name,
         email: storedUser.email,
-        emailVerified: storedUser.email_verified === 1,
-        groupId: storedUser.group_id?.toString(),
+        emailVerified: storedUser.emailVerified === 1,
+        groupId: storedUser.groupId?.toString(),
         createdAt:
-          storedUser.registration_date?.toISOString() ||
+          storedUser.registrationDate?.toISOString() ||
           new Date().toISOString(),
         updatedAt:
-          storedUser.registration_date?.toISOString() ||
+          storedUser.registrationDate?.toISOString() ||
           new Date().toISOString(),
       },
     });
@@ -250,8 +246,8 @@ export const verifyEmailCode = async (
     }
 
     if (
-      storedUser.verification_code !== verification_code ||
-      new Date(storedUser.verification_expires!) < new Date()
+      storedUser.verificationCode !== verification_code ||
+      new Date(storedUser.verificationExpires!) < new Date()
     ) {
       return res
         .status(403)
@@ -264,10 +260,10 @@ export const verifyEmailCode = async (
     }
 
     await usersRepository.update("id", storedUser.id!, {
-      email_verified: 1,
-      verification_code: "",
-      verification_expires: undefined,
-    });
+      emailVerified: 1,
+      verificationCode: "",
+      verificationExpires: undefined,
+    } as any);
 
     return res.json({ message: "Email verified successfully." });
   } catch (error) {
@@ -287,8 +283,6 @@ export const logout = async (
   req: Request,
   res: Response
 ): Promise<Response> => {
-  // Com JWT, o logout é feito no cliente removendo os tokens
-  // Aqui podemos adicionar lógica de blacklist de tokens se necessário no futuro
   return res.json({ message: "Logout successful." });
 };
 
@@ -410,8 +404,8 @@ export const updateUserLanguage = async (
     }
 
     await usersRepository.update("id", userId, {
-      language_id: language_id,
-    });
+      languageId: language_id,
+    } as any);
 
     return res.json({
       message: "User language updated successfully.",
@@ -447,10 +441,8 @@ export const refreshToken = async (
   }
 
   try {
-    // Importa o helper JWT
     const jwtHelper = (await import("../helper/jwt.helper")).default;
 
-    // Verifica e gera novo access token
     const newAccessToken = jwtHelper.refreshAccessToken(refreshToken);
 
     return res.json({
@@ -463,6 +455,62 @@ export const refreshToken = async (
         errorHelper.buildStandardResponse(
           "Invalid or expired refresh token.",
           "invalid-refresh-token",
+          error
+        )
+      );
+  }
+};
+
+export const requestVerificationCode = async (
+  req: Request,
+  res: Response
+): Promise<Response> => {
+  const { id: userId } = (req as any).user;
+
+  try {
+    const user = await usersRepository.getById(userId);
+    if (!user) {
+      return res
+        .status(404)
+        .send(
+          errorHelper.buildStandardResponse("User not found.", "user-not-found")
+        );
+    }
+
+    if (user.emailVerified === 1) {
+      return res
+        .status(400)
+        .send(
+          errorHelper.buildStandardResponse(
+            "Email already verified.",
+            "email-already-verified"
+          )
+        );
+    }
+
+    const { verificationCode, expiresAt } = generateVerificationCode();
+
+    await usersRepository.update("id", userId, {
+      verificationCode: verificationCode,
+      verificationExpires: expiresAt,
+    } as any);
+
+    try {
+      await mailerService.sendVerificationEmail(user.email, verificationCode);
+    } catch (emailError) {
+      console.error("Error sending verification email:", emailError);
+    }
+
+    return res.json({
+      message: "Verification code sent successfully.",
+    });
+  } catch (error) {
+    return res
+      .status(500)
+      .send(
+        errorHelper.buildStandardResponse(
+          "Error while requesting verification code.",
+          "error-request-verification-code",
           error
         )
       );

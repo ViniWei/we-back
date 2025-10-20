@@ -32,7 +32,7 @@ async function verifyToken(
       (req as any).user = {
         id: decoded.userId,
         email: decoded.email,
-        group_id: decoded.groupId,
+        groupId: decoded.groupId,
       };
 
       next();

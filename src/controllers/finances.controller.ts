@@ -1,6 +1,8 @@
 import { Request, Response } from "express";
 
-import financesRepository from "../repository/finances.repository";
+import financesRepository, {
+  IFinance,
+} from "../repositories/finances.repository";
 import errorHelper from "../helper/error.helper";
 import { IFinances } from "../types/database";
 
@@ -26,16 +28,16 @@ const financeTypeReverseMap: { [key: string]: number } = {
   Outros: 8,
 };
 
-function convertToFrontendFinance(finance: IFinances) {
+function convertToFrontendFinance(finance: IFinance) {
   const converted = {
     id: finance.id?.toString() || "0",
-    descricao: finance.description,
-    valor: finance.amount,
-    categoria: financeTypeMap[finance.type_id] || "Outros",
+    descricao: finance.description || "",
+    valor: finance.amount || 0,
+    categoria: financeTypeMap[finance.type_id || 8] || "Outros",
     data: finance.created_at
       ? new Date(finance.created_at).toISOString().split("T")[0]
       : new Date().toISOString().split("T")[0],
-    groupId: finance.group_id?.toString(),
+    groupId: (finance as any).groupId?.toString() || "0",
   };
 
   return converted;
@@ -75,7 +77,7 @@ export const getFinancesByGroupId = async (
   req: Request,
   res: Response
 ): Promise<Response> => {
-  const { group_id } = (req as any).user;
+  const { groupId: group_id } = (req as any).user;
 
   if (!group_id) {
     return res
@@ -115,7 +117,7 @@ export const createFinance = async (
   res: Response
 ): Promise<Response> => {
   const financeData = req.body;
-  const { group_id, id: user_id } = (req as any).user;
+  const { groupId: group_id, id: user_id } = (req as any).user;
 
   if (!group_id) {
     return res
@@ -180,7 +182,6 @@ export const updateFinance = async (
         );
     }
 
-    // Converter dados do frontend para o formato do backend
     const financeUpdateData: Partial<IFinances> = {};
 
     if (updateData.descricao)
@@ -188,7 +189,7 @@ export const updateFinance = async (
     if (updateData.valor) financeUpdateData.amount = updateData.valor;
     if (updateData.categoria)
       financeUpdateData.type_id =
-        financeTypeReverseMap[updateData.categoria] || existingFinance.type_id;
+        financeTypeReverseMap[updateData.categoria] || existingFinance.type_id!;
 
     financeUpdateData.modified_by = user_id;
     financeUpdateData.modified_at = new Date();

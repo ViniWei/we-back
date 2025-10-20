@@ -8,7 +8,7 @@ import movieListsRoutes from "./routes/movieLists.routes";
 import tripsRoutes from "./routes/trips.routes";
 import financesRoutes from "./routes/finances.routes";
 import activitiesRoutes from "./routes/activities.routes";
-import { pool } from "./config/database";
+import { pool } from "./db";
 import errorHelper from "./helper/error.helper";
 
 const app = express();

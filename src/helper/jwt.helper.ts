@@ -1,7 +1,9 @@
 import jwt from "jsonwebtoken";
 
-const ACCESS_TOKEN_SECRET = process.env.JWT_ACCESS_SECRET || "access-secret-key";
-const REFRESH_TOKEN_SECRET = process.env.JWT_REFRESH_SECRET || "refresh-secret-key";
+const ACCESS_TOKEN_SECRET =
+  process.env.JWT_ACCESS_SECRET || "access-secret-key";
+const REFRESH_TOKEN_SECRET =
+  process.env.JWT_REFRESH_SECRET || "refresh-secret-key";
 
 // Access token expira em 15 minutos
 const ACCESS_TOKEN_EXPIRY = "15m";
@@ -63,7 +65,7 @@ export const verifyRefreshToken = (token: string): JWTPayload => {
  */
 export const refreshAccessToken = (refreshToken: string): string => {
   const payload = verifyRefreshToken(refreshToken);
-  
+
   // Gera apenas um novo access token, mantendo o refresh token
   const newAccessToken = jwt.sign(
     {

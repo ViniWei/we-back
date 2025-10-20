@@ -1,16 +1,16 @@
 import { Request, Response } from "express";
-import tripsRepository from "../repository/trips.repository";
+import tripsRepository from "../repositories/trips.repository";
 import errorHelper from "../helper/error.helper";
 import tripsService from "../services/trips.service";
 import {
   ITripCreateRequest,
   ITripUpdateRequest,
-  ITrip,
+  ITrips,
 } from "../types/database";
 
 function parseTripFromRequest(
   body: ITripCreateRequest | ITripUpdateRequest
-): Partial<ITrip> {
+): Partial<ITrips> {
   const { city, startDate, endDate, description, status, estimated, icon } =
     body;
 
@@ -21,11 +21,10 @@ function parseTripFromRequest(
     );
   }
 
-  const trip: Partial<ITrip> = {
-    city,
+  const trip: Partial<ITrips> = {
+    destination: city,
     description,
-    status,
-    icon,
+    budget,
   };
 
   if (startDate) {
@@ -36,8 +35,16 @@ function parseTripFromRequest(
     trip.end_date = new Date(endDate);
   }
 
-  if (budget !== undefined) {
-    trip.estimated_budget = budget;
+  // Map status to status_id (assumindo: planned=1, ongoing=2, finished=3, canceled=4)
+  const statusMap: Record<string, number> = {
+    Planejando: 1,
+    "Em andamento": 2,
+    Finalizada: 3,
+    Cancelada: 4,
+  };
+
+  if (status) {
+    trip.status_id = statusMap[status] || 1;
   }
 
   return trip;
@@ -48,7 +55,7 @@ export async function getAllTrips(
   res: Response
 ): Promise<Response | void> {
   try {
-    const groupId = (req as any).user?.group_id;
+    const groupId = (req as any).user?.groupId;
     if (!groupId) {
       return res
         .status(400)
@@ -95,7 +102,7 @@ export async function createTrip(
   }
 
   try {
-    const groupId = (req as any).user?.group_id;
+    const groupId = (req as any).user?.groupId;
     if (!groupId) {
       return res
         .status(400)
@@ -110,10 +117,10 @@ export async function createTrip(
     const newTripData = parseTripFromRequest(req.body);
 
     if (
-      !newTripData.city ||
+      !newTripData.destination ||
       !newTripData.start_date ||
       !newTripData.end_date ||
-      !newTripData.status
+      !newTripData.status_id
     ) {
       return res
         .status(400)
@@ -125,10 +132,11 @@ export async function createTrip(
         );
     }
 
-    const newTrip = await tripsRepository.create(
-      newTripData as Omit<ITrip, "id" | "created_at" | "updated_at">,
-      groupId
-    );
+    // Adicionar groupId e created_by
+    newTripData.group_id = groupId;
+    newTripData.created_by = (req as any).user?.id;
+
+    const newTrip = await tripsRepository.create(newTripData);
     const formattedTrip = tripsService.formatTripResponse(newTrip as any);
     res.status(201).json(formattedTrip);
   } catch (error) {
@@ -149,7 +157,7 @@ export async function getUpcomingTrips(
   res: Response
 ): Promise<Response | void> {
   try {
-    const groupId = (req as any).user?.group_id;
+    const groupId = (req as any).user?.groupId;
     if (!groupId) {
       return res
         .status(400)
@@ -184,7 +192,7 @@ export async function getPastTrips(
   res: Response
 ): Promise<Response | void> {
   try {
-    const groupId = (req as any).user?.group_id;
+    const groupId = (req as any).user?.groupId;
     if (!groupId) {
       return res
         .status(400)
@@ -220,7 +228,7 @@ export async function getTripById(
 ): Promise<Response | void> {
   const { id } = req.params;
   try {
-    const groupId = (req as any).user?.group_id;
+    const groupId = (req as any).user?.groupId;
     if (!groupId) {
       return res
         .status(400)
@@ -232,7 +240,7 @@ export async function getTripById(
         );
     }
 
-    const trip = await tripsRepository.getById(id, groupId);
+    const trip = await tripsRepository.getById(Number(id), groupId);
     if (!trip) {
       return res
         .status(404)
@@ -274,7 +282,7 @@ export async function updateTrip(
   }
 
   try {
-    const groupId = (req as any).user?.group_id;
+    const groupId = (req as any).user?.groupId;
     if (!groupId) {
       return res
         .status(400)
@@ -287,7 +295,11 @@ export async function updateTrip(
     }
 
     const tripData = parseTripFromRequest(req.body);
-    const updatedTrip = await tripsRepository.update(id, tripData, groupId);
+    const updatedTrip = await tripsRepository.update(
+      Number(id),
+      tripData,
+      groupId
+    );
     if (!updatedTrip) {
       return res
         .status(404)
@@ -319,8 +331,8 @@ export async function deleteTrip(
 ): Promise<Response | void> {
   const { id } = req.params;
   try {
-    const result = await tripsRepository.remove(id);
-    if (result.affectedRows === 0) {
+    const result = await tripsRepository.remove(Number(id));
+    if (!result) {
       return res
         .status(404)
         .send(
@@ -362,7 +374,7 @@ export async function addPhotosToTrip(
   }
 
   try {
-    const groupId = (req as any).user?.group_id;
+    const groupId = (req as any).user?.groupId;
     if (!groupId) {
       return res
         .status(400)
@@ -374,7 +386,7 @@ export async function addPhotosToTrip(
         );
     }
 
-    const trip = await tripsRepository.getById(id, groupId);
+    const trip = await tripsRepository.getById(Number(id), groupId);
     if (!trip) {
       return res
         .status(404)
@@ -391,9 +403,9 @@ export async function addPhotosToTrip(
         `${req.protocol}://${req.get("host")}/uploads/${file.filename}`
     );
 
-    await tripsRepository.addPhotos(id, photoUrls);
+    await tripsRepository.addPhotos(Number(id), photoUrls);
 
-    const updatedTrip = await tripsRepository.getById(id, groupId);
+    const updatedTrip = await tripsRepository.getById(Number(id), groupId);
     if (updatedTrip) {
       const formattedTrip = tripsService.formatTripResponse(updatedTrip);
       res.status(200).json(formattedTrip);
