@@ -16,6 +16,8 @@ export class ActivitiesController {
         "id" | "created_at" | "modified_at"
       > = req.body;
 
+      console.log("Received activity data:", activityData);
+
       if (
         !activityData.group_id ||
         !activityData.event_name ||
@@ -33,9 +35,14 @@ export class ActivitiesController {
       const activity = await this.activitiesService.createActivity(
         activityData
       );
+      console.log("Created activity:", activity);
       res.status(201).json(activity);
-    } catch (error) {
-      res.status(500).json({ error: "Erro interno do servidor" });
+    } catch (error: any) {
+      console.error("Error creating activity:", error);
+      res.status(500).json({
+        error: "Erro interno do servidor",
+        details: error.message,
+      });
     }
   };
 
@@ -61,12 +68,18 @@ export class ActivitiesController {
   ): Promise<void> => {
     try {
       const { groupId } = req.params;
+      console.log("Fetching activities for group:", groupId);
       const activities = await this.activitiesService.getActivitiesByGroupId(
         Number(groupId)
       );
+      console.log("Found activities:", activities.length);
       res.json(activities);
-    } catch (error) {
-      res.status(500).json({ error: "Erro interno do servidor" });
+    } catch (error: any) {
+      console.error("Error fetching activities by group:", error);
+      res.status(500).json({
+        error: "Erro interno do servidor",
+        details: error.message,
+      });
     }
   };
 

@@ -65,12 +65,18 @@ const getById = async (id: number): Promise<IActivities | undefined> => {
 
 const create = async (data: Partial<IActivity>): Promise<IActivities> => {
   const now = new Date();
+
+  let parsedDate = data.date;
+  if (typeof data.date === "string") {
+    parsedDate = new Date(data.date);
+  }
+
   const result = await db.insert(activities).values({
     groupId: data.group_id,
     tripId: data.trip_id,
     suggestionId: data.suggestion_id,
     eventName: data.event_name,
-    date: data.date!,
+    date: parsedDate!,
     location: data.location,
     description: data.description,
     createdBy: data.created_by,
