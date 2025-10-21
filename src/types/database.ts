@@ -132,6 +132,7 @@ export interface IMovieListItems {
   id?: number;
   movie_id: number;
   list_id: number;
+  created_by: number;
   created_at?: Date;
 }
 

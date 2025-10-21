@@ -264,6 +264,7 @@ export const addMovieToList = async (
 ): Promise<Response> => {
   const { listId } = req.params;
   const itemData = req.body;
+  const { userId } = (req as any).user;
 
   try {
     const existingList = await movieListsRepository.getById(Number(listId));
@@ -281,6 +282,7 @@ export const addMovieToList = async (
     const listItem = {
       ...itemData,
       list_id: Number(listId),
+      created_by: userId,
     };
 
     const newItem = await movieListItemsRepository.create(listItem);

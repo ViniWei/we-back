@@ -6,6 +6,7 @@ export interface IMovieListItem {
   id?: number;
   movie_id?: number;
   list_id?: number;
+  created_by?: number;
   created_at?: Date;
 }
 
@@ -46,6 +47,7 @@ const create = async (data: Partial<IMovieListItem>) => {
   const result = await db.insert(movieListItems).values({
     movieId: data.movie_id,
     listId: data.list_id,
+    createdBy: data.created_by,
     createdAt: data.created_at || new Date(),
   });
   const insertId = Number(result[0].insertId);

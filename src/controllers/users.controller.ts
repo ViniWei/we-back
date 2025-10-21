@@ -12,6 +12,8 @@ import {
   IVerificationCodeData,
   IChangePasswordRequest,
   IUpdateUserLanguageRequest,
+  IRequestResetPasswordRequest,
+  IResetPasswordRequest,
 } from "../types/api";
 import { CreateUser } from "../types/database";
 
@@ -529,3 +531,143 @@ function generateVerificationCode(): IVerificationCodeData {
     expiresAt,
   };
 }
+
+export const requestResetPassword = async (
+  req: Request,
+  res: Response
+): Promise<Response> => {
+  const { email }: IRequestResetPasswordRequest = req.body;
+
+  if (!email) {
+    return res
+      .status(400)
+      .send(
+        errorHelper.buildStandardResponse("Email is required.", "missing-email")
+      );
+  }
+
+  if (!usersService.verifyEmailFormat(email)) {
+    return res
+      .status(400)
+      .send(
+        errorHelper.buildStandardResponse(
+          "Invalid email format.",
+          "email-invalid-format"
+        )
+      );
+  }
+
+  try {
+    const user = await usersRepository.getByEmail(email);
+    if (!user) {
+      // Por segurança, não revelamos se o email existe ou não
+      return res.json({
+        message: "If the email exists, a reset code has been sent.",
+      });
+    }
+
+    const { verificationCode, expiresAt } = generateVerificationCode();
+
+    await usersRepository.update("id", user.id!, {
+      verificationCode: verificationCode,
+      verificationExpires: expiresAt,
+    } as any);
+
+    try {
+      await mailerService.sendPasswordResetEmail(email, verificationCode);
+    } catch (emailError) {
+      console.error("Error sending password reset email:", emailError);
+    }
+
+    return res.json({
+      message: "If the email exists, a reset code has been sent.",
+    });
+  } catch (error) {
+    return res
+      .status(500)
+      .send(
+        errorHelper.buildStandardResponse(
+          "Error while requesting password reset.",
+          "error-request-reset-password",
+          error
+        )
+      );
+  }
+};
+
+export const resetPassword = async (
+  req: Request,
+  res: Response
+): Promise<Response> => {
+  const { email, code, newPassword }: any = req.body;
+
+  if (!email || !code || !newPassword) {
+    return res
+      .status(400)
+      .send(
+        errorHelper.buildStandardResponse(
+          "Email, code and new password are required.",
+          "missing-fields"
+        )
+      );
+  }
+
+  if (newPassword.length < 6) {
+    return res
+      .status(400)
+      .send(
+        errorHelper.buildStandardResponse(
+          "New password must be at least 6 characters long.",
+          "password-too-short"
+        )
+      );
+  }
+
+  try {
+    const user = await usersRepository.getByEmail(email);
+    if (!user) {
+      return res
+        .status(404)
+        .send(
+          errorHelper.buildStandardResponse("User not found.", "user-not-found")
+        );
+    }
+
+    if (
+      !user.verificationCode ||
+      user.verificationCode !== code ||
+      new Date(user.verificationExpires!) < new Date()
+    ) {
+      return res
+        .status(403)
+        .send(
+          errorHelper.buildStandardResponse(
+            "Invalid or expired reset code.",
+            "invalid-reset-code"
+          )
+        );
+    }
+
+    const hashedPassword = usersService.encryptPassword(newPassword);
+
+    await usersRepository.update("id", user.id!, {
+      password: hashedPassword,
+      verificationCode: "",
+      verificationExpires: undefined,
+    } as any);
+
+    return res.json({
+      message: "Password reset successfully.",
+    });
+  } catch (error) {
+    return res
+      .status(500)
+      .send(
+        errorHelper.buildStandardResponse(
+          "Error while resetting password.",
+          "error-reset-password",
+          error
+        )
+      );
+  }
+};

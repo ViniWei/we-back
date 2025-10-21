@@ -34,6 +34,32 @@ const sendVerificationEmail = async (
   }
 };
 
+const sendPasswordResetEmail = async (
+  email: string,
+  code: string
+): Promise<void> => {
+  const templateHtml = await fs.readFile(
+    "./templates/reset-password.html",
+    "utf-8"
+  );
+  const compiledTemplate = Handlebars.compile(templateHtml);
+  const html = compiledTemplate({ appName: "WE", code, logoUrl: "logo.png" });
+
+  const mailOptions = {
+    from: process.env.SMTP_AUTH_USER,
+    to: email,
+    subject: "REDEFINIÇÃO DE SENHA - WE",
+    html,
+  };
+
+  try {
+    await transporter.sendMail(mailOptions);
+  } catch (error) {
+    throw error;
+  }
+};
+
 export default {
   sendVerificationEmail,
+  sendPasswordResetEmail,
 };
