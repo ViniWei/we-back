@@ -34,9 +34,11 @@ export class ActivitiesController {
         activityData
       );
       res.status(201).json(activity);
-    } catch (error) {
-      console.error("Erro ao criar atividade:", error);
-      res.status(500).json({ error: "Erro interno do servidor" });
+    } catch (error: any) {
+      res.status(500).json({
+        error: "Erro interno do servidor",
+        details: error.message,
+      });
     }
   };
 
@@ -52,7 +54,6 @@ export class ActivitiesController {
 
       res.json(activity);
     } catch (error) {
-      console.error("Erro ao buscar atividade:", error);
       res.status(500).json({ error: "Erro interno do servidor" });
     }
   };
@@ -67,9 +68,12 @@ export class ActivitiesController {
         Number(groupId)
       );
       res.json(activities);
-    } catch (error) {
-      console.error("Erro ao buscar atividades do grupo:", error);
-      res.status(500).json({ error: "Erro interno do servidor" });
+    } catch (error: any) {
+      console.error("Error fetching activities by group:", error);
+      res.status(500).json({
+        error: "Erro interno do servidor",
+        details: error.message,
+      });
     }
   };
 
@@ -84,7 +88,6 @@ export class ActivitiesController {
       );
       res.json(activities);
     } catch (error) {
-      console.error("Erro ao buscar atividades da viagem:", error);
       res.status(500).json({ error: "Erro interno do servidor" });
     }
   };
@@ -111,7 +114,6 @@ export class ActivitiesController {
       );
       res.json(activities);
     } catch (error) {
-      console.error("Erro ao buscar atividades por período:", error);
       res.status(500).json({ error: "Erro interno do servidor" });
     }
   };
@@ -130,7 +132,6 @@ export class ActivitiesController {
       );
       res.json(activities);
     } catch (error) {
-      console.error("Erro ao buscar próximas atividades:", error);
       res.status(500).json({ error: "Erro interno do servidor" });
     }
   };
@@ -152,7 +153,6 @@ export class ActivitiesController {
 
       res.json(activity);
     } catch (error) {
-      console.error("Erro ao atualizar atividade:", error);
       res.status(500).json({ error: "Erro interno do servidor" });
     }
   };
@@ -169,7 +169,6 @@ export class ActivitiesController {
 
       res.status(204).send();
     } catch (error) {
-      console.error("Erro ao deletar atividade:", error);
       res.status(500).json({ error: "Erro interno do servidor" });
     }
   };

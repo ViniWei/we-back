@@ -1,12 +1,15 @@
 import { Request, Response } from "express";
-import { ISessionUser } from "./database";
+
+// Tipos JWT
+export interface IJWTUser {
+  id: number;
+  email: string;
+  group_id?: number;
+}
 
 declare module "express-serve-static-core" {
   interface Request {
-    session: {
-      user?: ISessionUser;
-      [key: string]: any;
-    };
+    user?: IJWTUser;
   }
 }
 
@@ -24,6 +27,10 @@ export interface ICreateUserRequest {
 export interface IUpdateUserRequest {
   name?: string;
   email?: string;
+}
+
+export interface IUpdateUserLanguageRequest {
+  language_id: number;
 }
 
 export interface IChangePasswordRequest {
@@ -74,7 +81,7 @@ export interface IGenerateCodeResponse {
 
 export interface IJoinGroupResponse {
   message: string;
-  group_id: number;
+  groupId: number;
 }
 
 export type ControllerFunction = (req: Request, res: Response) => Promise<any>;

@@ -5,6 +5,15 @@ import {
   ITripUpdateRequest,
 } from "../types/database";
 
+function validateEstimatedBudget(estimated?: string): boolean {
+  if (!estimated) return true;
+
+  const cleanBudget = estimated.replace(/[R$\s.,]/g, "");
+  const budget = parseFloat(cleanBudget);
+
+  return !isNaN(budget) && budget >= 0;
+}
+
 function validateTripDates(
   startDate: Date | string,
   endDate: Date | string
@@ -12,23 +21,19 @@ function validateTripDates(
   const start = new Date(startDate);
   const end = new Date(endDate);
 
-  // Check if dates are valid
   if (isNaN(start.getTime()) || isNaN(end.getTime())) {
     return false;
   }
 
-  // Check if start date is before end date
   return start <= end;
 }
 
 function validateTripStatus(status: string): boolean {
   const validStatuses = [
-    // Status em português (novos)
     "Planejando",
     "Em andamento",
     "Finalizada",
     "Cancelada",
-    // Status em inglês (compatibilidade)
     "planned",
     "ongoing",
     "completed",

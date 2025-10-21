@@ -14,21 +14,21 @@ import {
 
 const router = Router();
 
-router.get("/", authMiddleware.verifySession, getAll);
-router.get("/group", authMiddleware.verifySession, getByGroupId);
+router.get("/", authMiddleware.verifyToken, getAll);
+router.get("/group", authMiddleware.verifyToken, getByGroupId);
 router.get(
   "/group/with-movies",
-  authMiddleware.verifySession,
+  authMiddleware.verifyToken,
   getByGroupIdWithMovies
 );
-router.get("/:id", authMiddleware.verifySession, get);
-router.post("/", authMiddleware.verifySession, create);
-router.put("/:id", authMiddleware.verifySession, update);
-router.delete("/:id", authMiddleware.verifySession, remove);
-router.post("/:listId/movies", authMiddleware.verifySession, addMovieToList);
+router.get("/:id", authMiddleware.verifyToken, get);
+router.post("/", authMiddleware.verifyToken, create);
+router.put("/:id", authMiddleware.verifyToken, update);
+router.delete("/:id", authMiddleware.verifyToken, remove);
+router.post("/:listId/movies", authMiddleware.verifyToken, addMovieToList);
 router.delete(
   "/:listId/movies/:movieId",
-  authMiddleware.verifySession,
+  authMiddleware.verifyToken,
   removeMovieFromList
 );
 

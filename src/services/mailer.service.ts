@@ -30,7 +30,6 @@ const sendVerificationEmail = async (
   try {
     await transporter.sendMail(mailOptions);
   } catch (error) {
-    console.error("Error sending verification email:", error);
     throw error;
   }
 };

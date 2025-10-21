@@ -1,56 +1,51 @@
 import { Request, Response, NextFunction } from "express";
 import errorHelper from "../helper/error.helper";
+import jwtHelper from "../helper/jwt.helper";
 
-async function verifySession(
+async function verifyToken(
   req: Request,
   res: Response,
   next: NextFunction
 ): Promise<void> {
   try {
-    if (req.session?.user) {
-      next();
+    // Pega o token do header Authorization (formato: "Bearer <token>")
+    const authHeader = req.headers["authorization"] as string;
+
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      res
+        .status(401)
+        .send(
+          errorHelper.buildStandardResponse(
+            "Authentication required. Please login.",
+            "authentication-required"
+          )
+        );
       return;
     }
 
-    const sessionToken = req.headers["x-session-token"] as string;
+    const token = authHeader.substring(7); // Remove "Bearer "
 
-    if (sessionToken) {
-      const tokenParts = sessionToken.split("_");
+    try {
+      const decoded = jwtHelper.verifyAccessToken(token);
 
-      if (
-        tokenParts.length >= 3 &&
-        tokenParts[0] === "rn" &&
-        tokenParts[1] === "session"
-      ) {
-        const userId = parseInt(tokenParts[2]);
+      // Armazena os dados do usuário no request para uso nos controllers
+      (req as any).user = {
+        id: decoded.userId,
+        email: decoded.email,
+        groupId: decoded.groupId,
+      };
 
-        if (!isNaN(userId)) {
-          const usersRepository = (
-            await import("../repository/users.repository")
-          ).default;
-          const user = await usersRepository.getById(userId);
-
-          if (user) {
-            req.session.user = {
-              id: user.id!,
-              email: user.email,
-              group_id: user.group_id,
-            };
-            next();
-            return;
-          }
-        }
-      }
+      next();
+    } catch (jwtError) {
+      res
+        .status(401)
+        .send(
+          errorHelper.buildStandardResponse(
+            "Invalid or expired token. Please login again.",
+            "invalid-token"
+          )
+        );
     }
-
-    res
-      .status(401)
-      .send(
-        errorHelper.buildStandardResponse(
-          "Authentication required. Please login.",
-          "authentication-required"
-        )
-      );
   } catch (error) {
     res
       .status(500)
@@ -65,5 +60,5 @@ async function verifySession(
 }
 
 export default {
-  verifySession,
+  verifyToken,
 };

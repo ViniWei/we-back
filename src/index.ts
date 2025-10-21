@@ -1,6 +1,5 @@
 import express from "express";
 import cors from "cors";
-import session from "express-session";
 
 import usersRoutes from "./routes/users.routes";
 import groupsRoutes from "./routes/groups.routes";
@@ -9,7 +8,7 @@ import movieListsRoutes from "./routes/movieLists.routes";
 import tripsRoutes from "./routes/trips.routes";
 import financesRoutes from "./routes/finances.routes";
 import activitiesRoutes from "./routes/activities.routes";
-import { pool } from "./config/database";
+import { pool } from "./db";
 import errorHelper from "./helper/error.helper";
 
 const app = express();
@@ -18,21 +17,8 @@ app.use(express.json());
 
 app.use(
   cors({
-    origin: "http://localhost:8081", // URL específica do Expo
-    credentials: true, // Permite cookies/sessões
-  })
-);
-
-app.use(
-  session({
-    secret: process.env.SECRET_KEY || "default-secret",
-    resave: false,
-    saveUninitialized: false, // Não criar sessão vazia
-    cookie: {
-      secure: false, // false para desenvolvimento (HTTP)
-      httpOnly: true, // Segurança: cookie não acessível via JS
-      maxAge: 1000 * 60 * 60 * 24 * 7, // 7 dias
-    },
+    origin: "http://localhost:8081",
+    credentials: true,
   })
 );
 

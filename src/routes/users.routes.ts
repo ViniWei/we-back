@@ -8,22 +8,25 @@ import {
   logout,
   verifyEmailCode,
   changePassword,
+  updateUserLanguage,
+  refreshToken,
+  requestVerificationCode,
 } from "../controllers/users.controller";
 
 const router = Router();
 
-router.get("/", authMiddleware.verifySession, get);
-router.get("/session-status", (req, res) => {
-  if (req.session.user) {
-    res.json({ authenticated: true, user: req.session.user });
-  } else {
-    res.json({ authenticated: false });
-  }
-});
+router.get("/", authMiddleware.verifyToken, get);
 router.post("/login", login);
-router.post("/logout", authMiddleware.verifySession, logout);
+router.post("/logout", authMiddleware.verifyToken, logout);
 router.post("/", create);
 router.post("/verifyEmail", verifyEmailCode);
-router.patch("/change-password", authMiddleware.verifySession, changePassword);
+router.post(
+  "/requestVerificationCode",
+  authMiddleware.verifyToken,
+  requestVerificationCode
+);
+router.post("/refresh-token", refreshToken);
+router.patch("/change-password", authMiddleware.verifyToken, changePassword);
+router.patch("/language", authMiddleware.verifyToken, updateUserLanguage);
 
 export default router;

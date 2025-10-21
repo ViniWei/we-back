@@ -2,7 +2,7 @@ import bcrypt from "bcryptjs";
 import crypto from "crypto";
 import { Request, Response } from "express";
 
-import usersRepository from "../repository/users.repository";
+import usersRepository from "../repositories/users.repository";
 import mailerService from "../services/mailer.service";
 import usersService from "../services/users.service";
 import errorHelper from "../helper/error.helper";
@@ -11,11 +11,12 @@ import {
   IVerifyEmailRequest,
   IVerificationCodeData,
   IChangePasswordRequest,
+  IUpdateUserLanguageRequest,
 } from "../types/api";
-import { IUser, CreateUser } from "../types/database";
+import { CreateUser } from "../types/database";
 
 export const get = async (req: Request, res: Response): Promise<Response> => {
-  const { id } = req.session.user!;
+  const { id } = (req as any).user;
 
   try {
     const user = await usersRepository.getById(id);
@@ -31,12 +32,12 @@ export const get = async (req: Request, res: Response): Promise<Response> => {
       id: user.id?.toString(),
       name: user.name,
       email: user.email,
-      emailVerified: user.email_verified === 1,
-      groupId: user.group_id?.toString(),
+      emailVerified: user.emailVerified === 1,
+      groupId: user.groupId?.toString(),
       createdAt:
-        user.registration_date?.toISOString() || new Date().toISOString(),
+        user.registrationDate?.toISOString() || new Date().toISOString(),
       updatedAt:
-        user.registration_date?.toISOString() || new Date().toISOString(),
+        user.registrationDate?.toISOString() || new Date().toISOString(),
     });
   } catch (error) {
     return res
@@ -82,13 +83,13 @@ export const create = async (
 
     const { verificationCode, expiresAt } = generateVerificationCode();
 
-    const user: CreateUser = {
+    const user: any = {
       name,
       email,
       password: usersService.encryptPassword(password),
-      verification_code: verificationCode,
-      verification_expires: expiresAt,
-      email_verified: 0, // Explicitly set to 0 (not verified)
+      verificationCode: verificationCode,
+      verificationExpires: expiresAt,
+      emailVerified: 0,
     };
 
     const newUser = await usersRepository.create(user);
@@ -97,24 +98,28 @@ export const create = async (
       await mailerService.sendVerificationEmail(email, verificationCode);
     } catch (emailError) {}
 
-    try {
-      req.session.user = {
-        id: newUser.id!,
-        email: newUser.email,
-        group_id: newUser.group_id || undefined,
-      };
-    } catch (sessionError) {}
+    const jwtHelper = (await import("../helper/jwt.helper")).default;
+
+    const { accessToken, refreshToken } = jwtHelper.generateTokens({
+      userId: newUser.id!,
+      email: newUser.email,
+      groupId: newUser.groupId,
+    });
 
     const responseData = {
-      id: newUser.id?.toString(),
-      name: newUser.name,
-      email: newUser.email,
-      emailVerified: newUser.email_verified === 1,
-      groupId: newUser.group_id?.toString() || null,
-      createdAt:
-        newUser.registration_date?.toISOString() || new Date().toISOString(),
-      updatedAt:
-        newUser.registration_date?.toISOString() || new Date().toISOString(),
+      accessToken,
+      refreshToken,
+      user: {
+        id: newUser.id?.toString(),
+        name: newUser.name,
+        email: newUser.email,
+        emailVerified: newUser.emailVerified === 1,
+        groupId: newUser.groupId?.toString() || null,
+        createdAt:
+          newUser.registrationDate?.toISOString() || new Date().toISOString(),
+        updatedAt:
+          newUser.registrationDate?.toISOString() || new Date().toISOString(),
+      },
     };
 
     try {
@@ -174,29 +179,29 @@ export const login = async (req: Request, res: Response): Promise<Response> => {
         );
     }
 
-    req.session.user = {
-      id: storedUser.id!,
-      email: storedUser.email,
-      group_id: storedUser.group_id,
-    };
+    const jwtHelper = (await import("../helper/jwt.helper")).default;
 
-    const sessionToken = `rn_session_${storedUser.id}_${Date.now()}`;
-    req.session.token = sessionToken;
+    const { accessToken, refreshToken } = jwtHelper.generateTokens({
+      userId: storedUser.id!,
+      email: storedUser.email,
+      groupId: storedUser.groupId,
+    });
 
     return res.json({
       message: "Login successful.",
-      sessionToken,
+      accessToken,
+      refreshToken,
       user: {
         id: storedUser.id?.toString(),
         name: storedUser.name,
         email: storedUser.email,
-        emailVerified: storedUser.email_verified === 1,
-        groupId: storedUser.group_id?.toString(),
+        emailVerified: storedUser.emailVerified === 1,
+        groupId: storedUser.groupId?.toString(),
         createdAt:
-          storedUser.registration_date?.toISOString() ||
+          storedUser.registrationDate?.toISOString() ||
           new Date().toISOString(),
         updatedAt:
-          storedUser.registration_date?.toISOString() ||
+          storedUser.registrationDate?.toISOString() ||
           new Date().toISOString(),
       },
     });
@@ -241,8 +246,8 @@ export const verifyEmailCode = async (
     }
 
     if (
-      storedUser.verification_code !== verification_code ||
-      new Date(storedUser.verification_expires!) < new Date()
+      storedUser.verificationCode !== verification_code ||
+      new Date(storedUser.verificationExpires!) < new Date()
     ) {
       return res
         .status(403)
@@ -255,16 +260,10 @@ export const verifyEmailCode = async (
     }
 
     await usersRepository.update("id", storedUser.id!, {
-      email_verified: 1,
-      verification_code: "",
-      verification_expires: undefined,
-    });
-
-    req.session.user = {
-      id: storedUser.id!,
-      email: storedUser.email,
-      group_id: storedUser.group_id,
-    };
+      emailVerified: 1,
+      verificationCode: "",
+      verificationExpires: undefined,
+    } as any);
 
     return res.json({ message: "Email verified successfully." });
   } catch (error) {
@@ -284,30 +283,7 @@ export const logout = async (
   req: Request,
   res: Response
 ): Promise<Response> => {
-  return new Promise((resolve) => {
-    if (!req.session || !req.session.user) {
-      resolve(res.json({ message: "Logout successful - no active session." }));
-      return;
-    }
-
-    req.session.destroy((err: any) => {
-      if (err) {
-        resolve(
-          res
-            .status(500)
-            .send(
-              errorHelper.buildStandardResponse(
-                "Error while logging out.",
-                "error-logout",
-                err
-              )
-            )
-        );
-      } else {
-        resolve(res.json({ message: "Logout successful." }));
-      }
-    });
-  });
+  return res.json({ message: "Logout successful." });
 };
 
 export const changePassword = async (
@@ -315,7 +291,7 @@ export const changePassword = async (
   res: Response
 ): Promise<Response> => {
   const { currentPassword, newPassword }: IChangePasswordRequest = req.body;
-  const { id: userId } = req.session.user!;
+  const { id: userId } = (req as any).user;
 
   if (!currentPassword || !newPassword) {
     return res
@@ -393,6 +369,148 @@ export const changePassword = async (
         errorHelper.buildStandardResponse(
           "Error while changing password.",
           "error-change-password",
+          error
+        )
+      );
+  }
+};
+
+export const updateUserLanguage = async (
+  req: Request,
+  res: Response
+): Promise<Response> => {
+  const { language_id }: IUpdateUserLanguageRequest = req.body;
+  const { id: userId } = (req as any).user;
+
+  if (!language_id) {
+    return res
+      .status(400)
+      .send(
+        errorHelper.buildStandardResponse(
+          "Language ID is required.",
+          "missing-language-id"
+        )
+      );
+  }
+
+  try {
+    const user = await usersRepository.getById(userId);
+    if (!user) {
+      return res
+        .status(404)
+        .send(
+          errorHelper.buildStandardResponse("User not found.", "user-not-found")
+        );
+    }
+
+    await usersRepository.update("id", userId, {
+      languageId: language_id,
+    } as any);
+
+    return res.json({
+      message: "User language updated successfully.",
+    });
+  } catch (error) {
+    return res
+      .status(500)
+      .send(
+        errorHelper.buildStandardResponse(
+          "Error while updating user language.",
+          "error-update-language",
+          error
+        )
+      );
+  }
+};
+
+export const refreshToken = async (
+  req: Request,
+  res: Response
+): Promise<Response> => {
+  const { refreshToken } = req.body;
+
+  if (!refreshToken) {
+    return res
+      .status(400)
+      .send(
+        errorHelper.buildStandardResponse(
+          "Refresh token is required.",
+          "missing-refresh-token"
+        )
+      );
+  }
+
+  try {
+    const jwtHelper = (await import("../helper/jwt.helper")).default;
+
+    const newAccessToken = jwtHelper.refreshAccessToken(refreshToken);
+
+    return res.json({
+      accessToken: newAccessToken,
+    });
+  } catch (error) {
+    return res
+      .status(401)
+      .send(
+        errorHelper.buildStandardResponse(
+          "Invalid or expired refresh token.",
+          "invalid-refresh-token",
+          error
+        )
+      );
+  }
+};
+
+export const requestVerificationCode = async (
+  req: Request,
+  res: Response
+): Promise<Response> => {
+  const { id: userId } = (req as any).user;
+
+  try {
+    const user = await usersRepository.getById(userId);
+    if (!user) {
+      return res
+        .status(404)
+        .send(
+          errorHelper.buildStandardResponse("User not found.", "user-not-found")
+        );
+    }
+
+    if (user.emailVerified === 1) {
+      return res
+        .status(400)
+        .send(
+          errorHelper.buildStandardResponse(
+            "Email already verified.",
+            "email-already-verified"
+          )
+        );
+    }
+
+    const { verificationCode, expiresAt } = generateVerificationCode();
+
+    await usersRepository.update("id", userId, {
+      verificationCode: verificationCode,
+      verificationExpires: expiresAt,
+    } as any);
+
+    try {
+      await mailerService.sendVerificationEmail(user.email, verificationCode);
+    } catch (emailError) {
+      console.error("Error sending verification email:", emailError);
+    }
+
+    return res.json({
+      message: "Verification code sent successfully.",
+    });
+  } catch (error) {
+    return res
+      .status(500)
+      .send(
+        errorHelper.buildStandardResponse(
+          "Error while requesting verification code.",
+          "error-request-verification-code",
           error
         )
       );

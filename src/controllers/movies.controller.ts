@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 
-import moviesRepository from "../repository/movies.repository";
+import moviesRepository from "../repositories/movies.repository";
 import errorHelper from "../helper/error.helper";
 import { ICreateMovieRequest } from "../types/api";
 
@@ -82,7 +82,6 @@ export const createFromApi = async (
   const apiMovieData = req.body;
 
   try {
-    // Check if movie already exists by api_id
     const existingMovie = await moviesRepository.getByApiId(
       apiMovieData.id.toString()
     );
@@ -91,7 +90,6 @@ export const createFromApi = async (
       return res.json(existingMovie);
     }
 
-    // Create new movie from API data
     const movieData = {
       title: apiMovieData.title || apiMovieData.original_title,
       synopsis: apiMovieData.overview,
