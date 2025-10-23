@@ -56,6 +56,7 @@ const getTripsWithPhotos = async (
       t.description,
       t.budget as estimated_budget,
       ts.status,
+      t.created_by,
       t.created_at,
       t.modified_at as updated_at,
       GROUP_CONCAT(tp.photo_url) AS photos
@@ -82,6 +83,7 @@ const getTripsWithPhotos = async (
     description: row.description,
     estimated_budget: row.estimated_budget,
     status: translateStatus(row.status || "planned"),
+    created_by: row.created_by,
     created_at: row.created_at,
     updated_at: row.updated_at,
     photos: row.photos ? row.photos.split(",") : [],
