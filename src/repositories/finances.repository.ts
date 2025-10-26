@@ -1,6 +1,6 @@
 import { eq } from "drizzle-orm";
 import { db } from "../db";
-import { finances } from "../db/schema";
+import { finances, users } from "../db/schema";
 
 export interface IFinance {
   id?: number;
@@ -9,10 +9,12 @@ export interface IFinance {
   amount?: number;
   type_id?: number;
   instalments?: number;
+  transaction_date?: Date | string;
   created_by?: number;
   modified_by?: number;
   created_at?: Date;
   modified_at?: Date;
+  user_name?: string;
 }
 
 // Helper para converter de camelCase (Drizzle) para snake_case (tipos legados)
@@ -23,10 +25,12 @@ const toSnakeCase = (data: any): IFinance => ({
   amount: data.amount,
   type_id: data.typeId,
   instalments: data.instalments,
+  transaction_date: data.transactionDate,
   created_by: data.createdBy,
   modified_by: data.modifiedBy,
   created_at: data.createdAt,
   modified_at: data.modifiedAt,
+  user_name: data.user_name,
 });
 
 const getAll = async (): Promise<IFinance[]> => {
@@ -36,8 +40,22 @@ const getAll = async (): Promise<IFinance[]> => {
 
 const getAllByGroupId = async (groupId: number): Promise<IFinance[]> => {
   const result = await db
-    .select()
+    .select({
+      id: finances.id,
+      groupId: finances.groupId,
+      description: finances.description,
+      amount: finances.amount,
+      typeId: finances.typeId,
+      instalments: finances.instalments,
+      transactionDate: finances.transactionDate,
+      createdBy: finances.createdBy,
+      modifiedBy: finances.modifiedBy,
+      createdAt: finances.createdAt,
+      modifiedAt: finances.modifiedAt,
+      user_name: users.name,
+    })
     .from(finances)
+    .leftJoin(users, eq(finances.createdBy, users.id))
     .where(eq(finances.groupId, groupId));
   return result.map(toSnakeCase);
 };
@@ -52,12 +70,21 @@ const getById = async (id: number): Promise<IFinance | undefined> => {
 
 const create = async (data: Partial<IFinance>): Promise<IFinance> => {
   const now = new Date();
+
+  // Use transaction_date if provided, otherwise use current date
+  const transactionDate = data.transaction_date
+    ? typeof data.transaction_date === "string"
+      ? new Date(data.transaction_date)
+      : data.transaction_date
+    : now;
+
   const result = await db.insert(finances).values({
     groupId: data.group_id,
     description: data.description,
     amount: data.amount,
     typeId: data.type_id,
     instalments: data.instalments ?? 1,
+    transactionDate: transactionDate,
     createdBy: data.created_by,
     modifiedBy: data.modified_by,
     createdAt: data.created_at || now,
@@ -73,6 +100,12 @@ const update = async (id: number, data: Partial<IFinance>): Promise<void> => {
   if (data.amount !== undefined) updateData.amount = data.amount;
   if (data.type_id !== undefined) updateData.typeId = data.type_id;
   if (data.instalments !== undefined) updateData.instalments = data.instalments;
+  if (data.transaction_date !== undefined) {
+    updateData.transactionDate =
+      typeof data.transaction_date === "string"
+        ? new Date(data.transaction_date)
+        : data.transaction_date;
+  }
   if (data.modified_by !== undefined) updateData.modifiedBy = data.modified_by;
   updateData.modifiedAt = new Date();
 

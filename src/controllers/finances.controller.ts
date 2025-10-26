@@ -34,10 +34,13 @@ function convertToFrontendFinance(finance: IFinance) {
     descricao: finance.description || "",
     valor: finance.amount || 0,
     categoria: financeTypeMap[finance.type_id || 8] || "Outros",
-    data: finance.created_at
-      ? new Date(finance.created_at).toISOString().split("T")[0]
+    data: finance.transaction_date
+      ? typeof finance.transaction_date === "string"
+        ? finance.transaction_date.split("T")[0]
+        : new Date(finance.transaction_date).toISOString().split("T")[0]
       : new Date().toISOString().split("T")[0],
     groupId: (finance as any).groupId?.toString() || "0",
+    nomeUsuario: finance.user_name || "Alguém",
   };
 
   return converted;
@@ -138,6 +141,8 @@ export const createFinance = async (
       description: financeData.descricao,
       amount: financeData.valor,
       type_id: typeId,
+      transaction_date:
+        financeData.data || new Date().toISOString().split("T")[0],
       created_by: user_id,
       created_at: new Date(),
       modified_at: new Date(),
@@ -190,6 +195,7 @@ export const updateFinance = async (
     if (updateData.categoria)
       financeUpdateData.type_id =
         financeTypeReverseMap[updateData.categoria] || existingFinance.type_id!;
+    if (updateData.data) financeUpdateData.transaction_date = updateData.data;
 
     financeUpdateData.modified_by = user_id;
     financeUpdateData.modified_at = new Date();

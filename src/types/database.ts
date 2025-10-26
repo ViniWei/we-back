@@ -132,6 +132,7 @@ export interface IMovieListItems {
   id?: number;
   movie_id: number;
   list_id: number;
+  created_by: number;
   created_at?: Date;
 }
 
@@ -147,6 +148,7 @@ export interface IFinances {
   amount: number;
   type_id: number;
   instalments?: number;
+  transaction_date: Date | string;
   created_by: number;
   modified_by?: number;
   created_at?: Date;

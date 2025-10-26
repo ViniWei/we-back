@@ -134,6 +134,7 @@ export const finances = mysqlTable("finances", {
   amount: float("amount"),
   typeId: int("type_id"),
   instalments: int("instalments").default(1),
+  transactionDate: date("transaction_date").notNull(),
   createdBy: int("created_by"),
   modifiedBy: int("modified_by"),
   createdAt: timestamp("created_at").defaultNow(),
@@ -183,6 +184,7 @@ export const movieListItems = mysqlTable("movie_list_items", {
   id: int("id").primaryKey().autoincrement(),
   movieId: int("movie_id"),
   listId: int("list_id"),
+  createdBy: int("created_by"),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
@@ -206,6 +208,7 @@ export const usersRelations = relations(users, ({ one, many }) => ({
   createdActivities: many(activities),
   createdFinances: many(finances),
   createdGames: many(games),
+  createdMovieListItems: many(movieListItems),
   moodEntries: many(moodCalendar),
 }));
 
@@ -366,6 +369,11 @@ export const movieListItemsRelations = relations(movieListItems, ({ one }) => ({
   list: one(movieLists, {
     fields: [movieListItems.listId],
     references: [movieLists.id],
+  }),
+  creator: one(users, {
+    fields: [movieListItems.createdBy],
+    references: [users.id],
+    relationName: "movieListItemCreator",
   }),
 }));
 
