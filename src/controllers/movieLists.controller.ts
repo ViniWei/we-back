@@ -113,7 +113,9 @@ export const getByGroupIdWithMovies = async (
         const movies = await Promise.all(
           listItems.map(async (item) => {
             const movie = await moviesRepository.getById(item.movieId!);
-            return movie ? { ...movie, addedAt: item.createdAt, createdBy: item.createdBy } : undefined;
+            return movie
+              ? { ...movie, addedAt: item.createdAt, createdBy: item.createdBy }
+              : undefined;
           })
         );
 
