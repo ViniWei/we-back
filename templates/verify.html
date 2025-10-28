@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8">
+    <title>{{appName}} – Verificação de e-mail</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <!-- Preheader: aparece como prévia no inbox -->
+    <meta name="x-preheader" content="Seu código de verificação: {{code}}. Ele expira em 1 minuto.">
+    <style>
+      /* Estilos mínimos para clientes que aceitam <style>; o essencial está inline */
+      @media (max-width:600px){
+        .container{ width:100% !important; }
+        .px{ padding-left:16px !important; padding-right:16px !important; }
+      }
+      /* Dark mode (nem todos os clientes suportam) */
+      @media (prefers-color-scheme: dark) {
+        body{ background:#0b0b0b !important; }
+        .card{ background:#151515 !important; color:#eaeaea !important; }
+        .muted{ color:#bdbdbd !important; }
+        .code{ background:#1e1e1e !important; color:#ffffff !important; border-color:#2a2a2a !important; }
+        .btn{ background:#6ea8fe !important; }
+      }
+    </style>
+  </head>
+  <body style="margin:0; padding:0; background:#f4f5f7;">
+    <!-- Full width wrapper -->
+    <table role="presentation" cellpadding="0" cellspacing="0" width="100%" style="background:#f4f5f7;">
+      <tr>
+        <td align="center" style="padding:24px;">
+          <!-- Container -->
+          <table role="presentation" cellpadding="0" cellspacing="0" width="600" class="container" style="width:600px; max-width:600px; background:#ffffff; border-radius:16px; overflow:hidden; box-shadow:0 2px 8px rgba(0,0,0,0.06);" >
+            <!-- Header -->
+            <tr>
+              <td class="px" style="padding:24px 32px; background:#ffffff;">
+                <table role="presentation" width="100%">
+                  <tr>
+                    <td align="left">
+                      <!-- Logo -->
+                      <img src="{{logoUrl}}" alt="{{appName}}"
+                           width="40" height="40"
+                           style="display:block; border-radius:8px; border:0; outline:none;">
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+
+            <!-- Hero -->
+            <tr>
+              <td class="px" style="padding:8px 32px 0 32px; background:#ffffff;">
+                <h1 style="margin:0 0 8px 0; font-family:Arial,Helvetica,sans-serif; font-size:24px; line-height:1.3; color:#111827;">
+                  Confirmar e-mail
+                </h1>
+                <p class="muted" style="margin:0 0 16px 0; font-family:Arial,Helvetica,sans-serif; font-size:14px; line-height:1.6; color:#6b7280;">
+                  Olá! Para ativar sua conta no <strong>{{appName}}</strong>, use o código abaixo.
+                  O código expira em <strong>1 minuto</strong>.
+                </p>
+              </td>
+            </tr>
+
+            <!-- Código -->
+            <tr>
+              <td class="px" style="padding:0 32px 8px 32px; background:#ffffff;">
+                <div class="card" style="background:#f9fafb; border:1px solid #e5e7eb; border-radius:12px; padding:16px; text-align:center;">
+                  <div class="code" style="display:inline-block; font-family:Menlo,Consolas,Monaco,monospace; letter-spacing:4px; font-size:22px; padding:10px 16px; border:1px dashed #d1d5db; border-radius:10px; background:#ffffff; color:#111827;">
+                    {{code}}
+                  </div>
+                  <div style="font-family:Arial,Helvetica,sans-serif; font-size:12px; color:#6b7280; margin-top:8px;">
+                    (copie e cole no app)
+                  </div>
+                </div>
+              </td>
+            </tr>
+
+            <!-- Observação -->
+            <tr>
+              <td class="px" style="padding:16px 32px 0 32px; background:#ffffff;">
+                <p class="muted" style="margin:0; font-family:Arial,Helvetica,sans-serif; font-size:12px; line-height:1.6; color:#6b7280;">
+                  Se você não solicitou esta verificação, ignore este e-mail.
+                </p>
+              </td>
+            </tr>
+
+            <!-- Footer -->
+            <tr>
+              <td class="px" style="padding:24px 32px 32px 32px; background:#ffffff;">
+                <hr style="border:none; border-top:1px solid #e5e7eb; margin:0 0 16px 0;">
+                <p class="muted" style="margin:0 0 2px 0; font-family:Arial,Helvetica,sans-serif; font-size:12px; color:#9ca3af;">
+                  Enviado por {{appName}} • Suporte: <a href="mailto:{{supportEmail}}" style="color:#6b7280; text-decoration:underline;">{{supportEmail}}</a>
+                </p>
+                <p class="muted" style="margin:0; font-family:Arial,Helvetica,sans-serif; font-size:11px; color:#9ca3af;">
+                  Este é um e-mail transacional. Você o recebeu porque se cadastrou no {{appName}}.
+                </p>
+              </td>
+            </tr>
+          </table>
+
+          <!-- Texto simples de fallback (para clientes que removem HTML) -->
+          <div style="display:none; white-space:pre; font-size:0; line-height:0;">
+            {{appName}} – Código: {{code}} (expira em 3 minutos). Confirme: {{actionUrl}}
+          </div>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>

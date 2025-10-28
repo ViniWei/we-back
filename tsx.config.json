@@ -1,0 +1,12 @@
+{
+  "$schema": "https://json.schemastore.org/tsx.json",
+  "compilerOptions": {
+    "jsx": "react"
+  },
+  "resolve": {
+    "extensionAlias": {
+      ".js": [".ts", ".tsx", ".js"],
+      ".mjs": [".mts", ".mjs"]
+    }
+  }
+}
