@@ -100,8 +100,8 @@ export const joinGroup = async (
       .status(400)
       .send(
         errorHelper.buildStandardResponse(
-          "Invite code is required.",
-          "missing-invite-code"
+          "code is required.",
+          "missing-required-fields"
         )
       );
   }
@@ -335,8 +335,8 @@ export const updateGroupImage = async (
       .status(400)
       .send(
         errorHelper.buildStandardResponse(
-          "Group image path is required.",
-          "missing-group-image-path"
+          "groupImagePath is required.",
+          "missing-required-fields"
         )
       );
   }
@@ -431,8 +431,8 @@ export const updateRelationshipStartDate = async (
       .status(400)
       .send(
         errorHelper.buildStandardResponse(
-          "Relationship start date is required.",
-          "missing-relationship-start-date"
+          "relationshipStartDate is required.",
+          "missing-required-fields"
         )
       );
   }

@@ -1,0 +1,22 @@
+# Arquivos e diretórios para ignorar no deploy do Elastic Beanstalk
+src/
+*.ts
+tsconfig.json
+.env
+.env.local
+.env.development
+.env.test
+.git/
+.gitignore
+README.md
+.vscode/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.DS_Store
+Thumbs.db
+deploy.sh
+package-production.json
+node_modules/
+!dist/

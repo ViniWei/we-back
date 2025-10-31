@@ -168,6 +168,17 @@ export const create = async (
       );
   }
 
+  if (!listData.name) {
+    return res
+      .status(400)
+      .send(
+        errorHelper.buildStandardResponse(
+          "name is required.",
+          "missing-required-fields"
+        )
+      );
+  }
+
   try {
     const movieList = {
       ...listData,
@@ -268,6 +279,17 @@ export const addMovieToList = async (
   const { listId } = req.params;
   const itemData = req.body;
   const { id: userId } = (req as any).user;
+
+  if (!itemData.movie_id) {
+    return res
+      .status(400)
+      .send(
+        errorHelper.buildStandardResponse(
+          "movie_id is required.",
+          "missing-required-fields"
+        )
+      );
+  }
 
   try {
     const existingList = await movieListsRepository.getById(Number(listId));

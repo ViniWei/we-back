@@ -10,6 +10,9 @@ import financesRoutes from "./routes/finances.routes";
 import activitiesRoutes from "./routes/activities.routes";
 import { pool } from "./db";
 import errorHelper from "./helper/error.helper";
+import dotenv from "dotenv";
+
+dotenv.config();
 
 const app = express();
 
