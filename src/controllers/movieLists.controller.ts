@@ -113,7 +113,9 @@ export const getByGroupIdWithMovies = async (
         const movies = await Promise.all(
           listItems.map(async (item) => {
             const movie = await moviesRepository.getById(item.movieId!);
-            return movie ? { ...movie, addedAt: item.createdAt } : undefined;
+            return movie
+              ? { ...movie, addedAt: item.createdAt, createdBy: item.createdBy }
+              : undefined;
           })
         );
 
@@ -128,6 +130,7 @@ export const getByGroupIdWithMovies = async (
               poster_path: movie!.posterPath,
               synopsis: movie!.synopsis,
               addedAt: movie!.addedAt,
+              createdBy: movie!.createdBy,
             })),
         };
       })
@@ -264,7 +267,7 @@ export const addMovieToList = async (
 ): Promise<Response> => {
   const { listId } = req.params;
   const itemData = req.body;
-  const { userId } = (req as any).user;
+  const { id: userId } = (req as any).user;
 
   try {
     const existingList = await movieListsRepository.getById(Number(listId));

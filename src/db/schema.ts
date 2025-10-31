@@ -134,6 +134,7 @@ export const finances = mysqlTable("finances", {
   amount: float("amount"),
   typeId: int("type_id"),
   instalments: int("instalments").default(1),
+  transactionDate: date("transaction_date").notNull(),
   createdBy: int("created_by"),
   modifiedBy: int("modified_by"),
   createdAt: timestamp("created_at").defaultNow(),
