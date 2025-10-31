@@ -2,12 +2,10 @@
   "name": "we-back",
   "version": "1.0.0",
   "main": "dist/index.js",
-  "type": "module",
   "scripts": {
     "build": "tsc",
-    "dev": "tsx watch --env-file=.env src/index.ts",
-    "start": "node --env-file=.env dist/index.js",
-    "serve": "tsx watch --env-file=.env src/index.ts",
+    "dev": "ts-node src/index.ts",
+    "start": "node dist/index.js",
     "lint": "npx eslint --fix ."
   },
   "author": "",

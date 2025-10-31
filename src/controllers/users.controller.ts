@@ -59,6 +59,18 @@ export const create = async (
   res: Response
 ): Promise<Response> => {
   const { name, email, password }: ICreateUserRequest = req.body;
+
+  if (!name || !email || !password) {
+    return res
+      .status(400)
+      .send(
+        errorHelper.buildStandardResponse(
+          "name, email and password are required.",
+          "missing-required-fields"
+        )
+      );
+  }
+
   if (!usersService.verifyEmailFormat(email)) {
     return res
       .status(400)
@@ -150,8 +162,8 @@ export const login = async (req: Request, res: Response): Promise<Response> => {
       .status(400)
       .send(
         errorHelper.buildStandardResponse(
-          "Email and password are required.",
-          "missing-email-or-password"
+          "email and password are required.",
+          "missing-required-fields"
         )
       );
   }
@@ -231,8 +243,8 @@ export const verifyEmailCode = async (
       .status(400)
       .send(
         errorHelper.buildStandardResponse(
-          "Email and verification code are required.",
-          "missing-email-or-code"
+          "email and verification_code are required.",
+          "missing-required-fields"
         )
       );
   }
@@ -300,8 +312,8 @@ export const changePassword = async (
       .status(400)
       .send(
         errorHelper.buildStandardResponse(
-          "Current password and new password are required.",
-          "missing-passwords"
+          "currentPassword and newPassword are required.",
+          "missing-required-fields"
         )
       );
   }
@@ -389,8 +401,8 @@ export const updateUserLanguage = async (
       .status(400)
       .send(
         errorHelper.buildStandardResponse(
-          "Language ID is required.",
-          "missing-language-id"
+          "language_id is required.",
+          "missing-required-fields"
         )
       );
   }
@@ -436,8 +448,8 @@ export const refreshToken = async (
       .status(400)
       .send(
         errorHelper.buildStandardResponse(
-          "Refresh token is required.",
-          "missing-refresh-token"
+          "refreshToken is required.",
+          "missing-required-fields"
         )
       );
   }
@@ -542,7 +554,10 @@ export const requestResetPassword = async (
     return res
       .status(400)
       .send(
-        errorHelper.buildStandardResponse("Email is required.", "missing-email")
+        errorHelper.buildStandardResponse(
+          "email is required.",
+          "missing-required-fields"
+        )
       );
   }
 
@@ -606,8 +621,8 @@ export const resetPassword = async (
       .status(400)
       .send(
         errorHelper.buildStandardResponse(
-          "Email, code and new password are required.",
-          "missing-fields"
+          "email, code and newPassword are required.",
+          "missing-required-fields"
         )
       );
   }

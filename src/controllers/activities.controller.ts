@@ -25,7 +25,8 @@ export class ActivitiesController {
       ) {
         res.status(400).json({
           error:
-            "Campos obrigatórios: group_id, event_name, date, location, created_by",
+            "group_id, event_name, date, location and created_by are required.",
+          errorCode: "missing-required-fields",
         });
         return;
       }
@@ -36,7 +37,8 @@ export class ActivitiesController {
       res.status(201).json(activity);
     } catch (error: any) {
       res.status(500).json({
-        error: "Erro interno do servidor",
+        error: "Internal server error.",
+        errorCode: "error-internal-server",
         details: error.message,
       });
     }
@@ -48,13 +50,19 @@ export class ActivitiesController {
       const activity = await this.activitiesService.getActivityById(Number(id));
 
       if (!activity) {
-        res.status(404).json({ error: "Atividade não encontrada" });
+        res.status(404).json({
+          error: "Activity not found.",
+          errorCode: "activity-not-found",
+        });
         return;
       }
 
       res.json(activity);
     } catch (error) {
-      res.status(500).json({ error: "Erro interno do servidor" });
+      res.status(500).json({
+        error: "Internal server error.",
+        errorCode: "error-internal-server",
+      });
     }
   };
 
@@ -71,7 +79,8 @@ export class ActivitiesController {
     } catch (error: any) {
       console.error("Error fetching activities by group:", error);
       res.status(500).json({
-        error: "Erro interno do servidor",
+        error: "Internal server error.",
+        errorCode: "error-internal-server",
         details: error.message,
       });
     }
@@ -88,7 +97,10 @@ export class ActivitiesController {
       );
       res.json(activities);
     } catch (error) {
-      res.status(500).json({ error: "Erro interno do servidor" });
+      res.status(500).json({
+        error: "Internal server error.",
+        errorCode: "error-internal-server",
+      });
     }
   };
 
@@ -102,7 +114,8 @@ export class ActivitiesController {
 
       if (!startDate || !endDate) {
         res.status(400).json({
-          error: "Parâmetros obrigatórios: startDate e endDate",
+          error: "startDate and endDate are required.",
+          errorCode: "missing-required-fields",
         });
         return;
       }
@@ -114,7 +127,10 @@ export class ActivitiesController {
       );
       res.json(activities);
     } catch (error) {
-      res.status(500).json({ error: "Erro interno do servidor" });
+      res.status(500).json({
+        error: "Internal server error.",
+        errorCode: "error-internal-server",
+      });
     }
   };
 
@@ -132,7 +148,10 @@ export class ActivitiesController {
       );
       res.json(activities);
     } catch (error) {
-      res.status(500).json({ error: "Erro interno do servidor" });
+      res.status(500).json({
+        error: "Internal server error.",
+        errorCode: "error-internal-server",
+      });
     }
   };
 
@@ -147,13 +166,19 @@ export class ActivitiesController {
       );
 
       if (!activity) {
-        res.status(404).json({ error: "Atividade não encontrada" });
+        res.status(404).json({
+          error: "Activity not found.",
+          errorCode: "activity-not-found",
+        });
         return;
       }
 
       res.json(activity);
     } catch (error) {
-      res.status(500).json({ error: "Erro interno do servidor" });
+      res.status(500).json({
+        error: "Internal server error.",
+        errorCode: "error-internal-server",
+      });
     }
   };
 
@@ -163,13 +188,19 @@ export class ActivitiesController {
       const success = await this.activitiesService.deleteActivity(Number(id));
 
       if (!success) {
-        res.status(404).json({ error: "Atividade não encontrada" });
+        res.status(404).json({
+          error: "Activity not found.",
+          errorCode: "activity-not-found",
+        });
         return;
       }
 
       res.status(204).send();
     } catch (error) {
-      res.status(500).json({ error: "Erro interno do servidor" });
+      res.status(500).json({
+        error: "Internal server error.",
+        errorCode: "error-internal-server",
+      });
     }
   };
 }

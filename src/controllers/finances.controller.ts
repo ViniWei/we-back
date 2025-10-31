@@ -133,6 +133,17 @@ export const createFinance = async (
       );
   }
 
+  if (!financeData.descricao || !financeData.valor || !financeData.categoria) {
+    return res
+      .status(400)
+      .send(
+        errorHelper.buildStandardResponse(
+          "descricao, valor and categoria are required.",
+          "missing-required-fields"
+        )
+      );
+  }
+
   try {
     const typeId = financeTypeReverseMap[financeData.categoria] || 8;
 

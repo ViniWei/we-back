@@ -59,6 +59,17 @@ export const create = async (
 ): Promise<Response> => {
   const movieData: ICreateMovieRequest = req.body;
 
+  if (!movieData.title) {
+    return res
+      .status(400)
+      .send(
+        errorHelper.buildStandardResponse(
+          "title is required.",
+          "missing-required-fields"
+        )
+      );
+  }
+
   try {
     const newMovie = await moviesRepository.create(movieData);
     return res.status(201).json(newMovie);
