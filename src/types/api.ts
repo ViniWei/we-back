@@ -69,6 +69,14 @@ export interface IResetPasswordRequest {
   newPassword: string;
 }
 
+export interface IGoogleAuthRequest {
+  idToken: string;
+  email: string;
+  name: string;
+  picture?: string;
+  googleId: string;
+}
+
 export interface IJoinGroupRequest {
   code: string;
 }
