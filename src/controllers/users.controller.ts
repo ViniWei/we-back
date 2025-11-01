@@ -14,6 +14,7 @@ import {
   IUpdateUserLanguageRequest,
   IRequestResetPasswordRequest,
   IResetPasswordRequest,
+  IGoogleAuthRequest,
 } from "../types/api";
 import { CreateUser } from "../types/database";
 
@@ -681,6 +682,81 @@ export const resetPassword = async (
         errorHelper.buildStandardResponse(
           "Error while resetting password.",
           "error-reset-password",
+          error
+        )
+      );
+  }
+};
+
+export const googleAuth = async (
+  req: Request,
+  res: Response
+): Promise<Response> => {
+  const { idToken, email, name, picture, googleId }: IGoogleAuthRequest =
+    req.body;
+
+  if (!idToken || !email || !name || !googleId) {
+    return res
+      .status(400)
+      .send(
+        errorHelper.buildStandardResponse(
+          "idToken, email, name and googleId are required.",
+          "missing-required-fields"
+        )
+      );
+  }
+
+  try {
+    // Verificar se o usuário já existe
+    let user = await usersRepository.getByEmail(email);
+
+    const jwtHelper = (await import("../helper/jwt.helper")).default;
+
+    if (!user) {
+      // Criar novo usuário
+      const newUser: any = {
+        name,
+        email,
+        password: usersService.encryptPassword(
+          crypto.randomBytes(32).toString("hex")
+        ), // Password aleatório
+        emailVerified: 1, // Email já verificado pelo Google
+        verificationCode: "",
+        verificationExpires: undefined,
+      };
+
+      user = await usersRepository.create(newUser);
+    }
+
+    const { accessToken, refreshToken } = jwtHelper.generateTokens({
+      userId: user.id!,
+      email: user.email,
+      groupId: user.groupId,
+    });
+
+    return res.json({
+      message: "Google authentication successful.",
+      accessToken,
+      refreshToken,
+      user: {
+        id: user.id?.toString(),
+        name: user.name,
+        email: user.email,
+        emailVerified: user.emailVerified === 1,
+        groupId: user.groupId?.toString(),
+        createdAt:
+          user.registrationDate?.toISOString() || new Date().toISOString(),
+        updatedAt:
+          user.registrationDate?.toISOString() || new Date().toISOString(),
+      },
+    });
+  } catch (error) {
+    return res
+      .status(500)
+      .send(
+        errorHelper.buildStandardResponse(
+          "Error while authenticating with Google.",
+          "error-google-auth",
           error
         )
       );
