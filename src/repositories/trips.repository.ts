@@ -21,14 +21,9 @@ const toSnakeCase = (data: any): ITrips => ({
 });
 
 const translateStatus = (status: string): string => {
-  const statusMap: Record<string, string> = {
-    planned: "Planejando",
-    ongoing: "Em andamento",
-    finished: "Finalizada",
-    canceled: "Cancelada",
-    cancelled: "Cancelada",
-  };
-  return statusMap[status.toLowerCase()] || "Planejando";
+  // O banco retorna em inglês (pending, canceled, done)
+  // Não precisa traduzir, apenas retornar o valor do banco
+  return status;
 };
 
 // Buscar trips com fotos usando query SQL customizada para manter compatibilidade
@@ -82,7 +77,7 @@ const getTripsWithPhotos = async (
     end_date: row.end_date,
     description: row.description,
     estimated_budget: row.estimated_budget,
-    status: translateStatus(row.status || "planned"),
+    status: translateStatus(row.status || "pending"),
     created_by: row.created_by,
     created_at: row.created_at,
     updated_at: row.updated_at,

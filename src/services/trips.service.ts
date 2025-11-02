@@ -29,18 +29,7 @@ function validateTripDates(
 }
 
 function validateTripStatus(status: string): boolean {
-  const validStatuses = [
-    "Planejando",
-    "Em andamento",
-    "Finalizada",
-    "Cancelada",
-    "planned",
-    "ongoing",
-    "completed",
-    "cancelled",
-    "finished",
-    "canceled",
-  ];
+  const validStatuses = ["pending", "canceled", "done"];
   return validStatuses.includes(status);
 }
 
@@ -85,9 +74,7 @@ function validateTripCreateRequest(request: ITripCreateRequest): {
   }
 
   if (request.status && !validateTripStatus(request.status)) {
-    errors.push(
-      "Invalid status. Must be one of: Planejando, Em andamento, Finalizada, Cancelada"
-    );
+    errors.push("Invalid status. Must be one of: pending, canceled, done");
   }
 
   if (request.estimated && !validateBudget(request.estimated)) {
@@ -122,9 +109,7 @@ function validateTripUpdateRequest(request: ITripUpdateRequest): {
   }
 
   if (request.status && !validateTripStatus(request.status)) {
-    errors.push(
-      "Invalid status. Must be one of: Planejando, Em andamento, Finalizada, Cancelada"
-    );
+    errors.push("Invalid status. Must be one of: pending, canceled, done");
   }
 
   if (request.estimated && !validateBudget(request.estimated)) {
@@ -172,15 +157,9 @@ function formatBudgetDisplay(budget?: number): string {
 
 function getTripStatusColor(status: string): string {
   const statusColors: Record<string, string> = {
-    Planejando: "#3b82f6", // blue
-    "Em andamento": "#f59e0b", // amber
-    Finalizada: "#10b981", // green
-    Cancelada: "#ef4444", // red
-    // Fallback para status antigos
-    planned: "#3b82f6", // blue
-    ongoing: "#f59e0b", // amber
-    completed: "#10b981", // green
-    cancelled: "#ef4444", // red
+    pending: "#f1c40f", // yellow
+    canceled: "#e74c3c", // red
+    done: "#2ecc71", // green
   };
 
   return statusColors[status] || "#6b7280"; // gray as default

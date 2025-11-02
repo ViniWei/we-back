@@ -1,1 +1,0 @@
-ALTER TABLE `movie_list_items` ADD `created_by` int;

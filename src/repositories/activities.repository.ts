@@ -7,11 +7,9 @@ export interface IActivity {
   id?: number;
   group_id?: number;
   trip_id?: number;
-  suggestion_id?: number;
+  date_id?: number;
   event_name?: string;
   date: Date;
-  location?: string;
-  description?: string;
   created_by?: number;
   modified_by?: number;
   created_at?: Date;
@@ -23,11 +21,9 @@ const toSnakeCase = (data: any): IActivities => ({
   id: data.id,
   group_id: data.groupId,
   trip_id: data.tripId,
-  suggestion_id: data.suggestionId,
+  date_id: data.dateId,
   event_name: data.eventName,
   date: data.date,
-  location: data.location,
-  description: data.description,
   created_by: data.createdBy,
   modified_by: data.modifiedBy,
   created_at: data.createdAt,
@@ -55,6 +51,14 @@ const getAllByTripId = async (tripId: number): Promise<IActivities[]> => {
   return results.map(toSnakeCase);
 };
 
+const getAllByDateId = async (dateId: number): Promise<IActivities[]> => {
+  const results = await db
+    .select()
+    .from(activities)
+    .where(eq(activities.dateId, dateId));
+  return results.map(toSnakeCase);
+};
+
 const getById = async (id: number): Promise<IActivities | undefined> => {
   const result = await db
     .select()
@@ -74,11 +78,9 @@ const create = async (data: Partial<IActivity>): Promise<IActivities> => {
   const result = await db.insert(activities).values({
     groupId: data.group_id,
     tripId: data.trip_id,
-    suggestionId: data.suggestion_id,
+    dateId: data.date_id,
     eventName: data.event_name,
     date: parsedDate!,
-    location: data.location,
-    description: data.description,
     createdBy: data.created_by,
     modifiedBy: data.modified_by,
     createdAt: data.created_at || now,
@@ -93,11 +95,8 @@ const update = async (id: number, data: Partial<IActivity>) => {
   const updateData: any = {};
   if (data.event_name !== undefined) updateData.eventName = data.event_name;
   if (data.date !== undefined) updateData.date = data.date;
-  if (data.location !== undefined) updateData.location = data.location;
-  if (data.description !== undefined) updateData.description = data.description;
   if (data.trip_id !== undefined) updateData.tripId = data.trip_id;
-  if (data.suggestion_id !== undefined)
-    updateData.suggestionId = data.suggestion_id;
+  if (data.date_id !== undefined) updateData.dateId = data.date_id;
   if (data.modified_by !== undefined) updateData.modifiedBy = data.modified_by;
   updateData.modifiedAt = new Date();
 
@@ -116,6 +115,7 @@ export default {
   getAll,
   getAllByGroupId,
   getAllByTripId,
+  getAllByDateId,
   getById,
   create,
   update,

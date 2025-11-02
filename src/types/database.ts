@@ -101,15 +101,43 @@ export interface IActivities {
   id?: number;
   group_id: number;
   trip_id?: number;
-  suggestion_id?: number;
-  event_name: string;
+  date_id?: number;
+  event_name?: string;
   date: Date;
-  location: string;
-  description?: string;
   created_by: number;
   modified_by?: number;
   created_at?: Date;
   modified_at?: Date;
+}
+
+export interface IDates {
+  id?: number;
+  group_id: number;
+  date: Date;
+  location?: string;
+  description?: string;
+  status_id: number;
+  created_by?: number;
+  modified_by?: number;
+  created_at?: Date;
+  modified_at?: Date;
+}
+
+export interface IDateCreateRequest {
+  groupId: number;
+  date: Date | string;
+  location?: string;
+  description?: string;
+  statusId: number;
+  createdBy?: number;
+}
+
+export interface IDateUpdateRequest {
+  date?: Date | string;
+  location?: string;
+  description?: string;
+  statusId?: number;
+  modifiedBy?: number;
 }
 
 export interface IMovies {
