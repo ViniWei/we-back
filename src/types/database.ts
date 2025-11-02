@@ -84,6 +84,7 @@ export interface ITripCreateRequest {
   endDate: string;
   description?: string;
   status: string;
+  budget?: number;
   estimated?: string;
   icon?: string;
 }

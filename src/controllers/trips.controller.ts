@@ -12,12 +12,24 @@ import {
 function parseTripFromRequest(
   body: ITripCreateRequest | ITripUpdateRequest
 ): Partial<ITrips> {
-  const { city, startDate, endDate, description, status, estimated, icon } =
-    body;
+  const {
+    city,
+    startDate,
+    endDate,
+    description,
+    status,
+    estimated,
+    budget,
+    icon,
+  } = body;
 
-  let budget: number | undefined = undefined;
-  if (estimated) {
-    budget = parseFloat(
+  let finalBudget: number | undefined = undefined;
+
+  // Priorizar o campo budget se fornecido, senão usar estimated (para backward compatibility)
+  if (budget !== undefined) {
+    finalBudget = budget;
+  } else if (estimated) {
+    finalBudget = parseFloat(
       estimated.replace("R$", "").replace(/\./g, "").replace(",", ".")
     );
   }
@@ -25,7 +37,7 @@ function parseTripFromRequest(
   const trip: Partial<ITrips> = {
     destination: city,
     description,
-    budget,
+    budget: finalBudget,
   };
 
   if (startDate) {

@@ -2,6 +2,7 @@ CREATE TABLE `activities` (
 	`id` int AUTO_INCREMENT NOT NULL,
 	`group_id` int,
 	`trip_id` int,
+	`date_id` int,
 	`event_name` varchar(255),
 	`date` datetime NOT NULL,
 	`created_by` int,
@@ -208,56 +209,3 @@ CREATE TABLE `users` (
 	CONSTRAINT `users_id` PRIMARY KEY(`id`),
 	CONSTRAINT `users_email_unique` UNIQUE(`email`)
 );
---> statement-breakpoint
--- Seed Data: Status de Dates
-INSERT INTO `date_status` (`status`) VALUES 
-('pending'),
-('canceled'),
-('done');
---> statement-breakpoint
--- Seed Data: Status de Trips
-INSERT INTO `trip_status` (`status`) VALUES 
-('pending'),
-('canceled'),
-('done');
---> statement-breakpoint
--- Seed Data: Tipos de Finanças
-INSERT INTO `finance_type` (`type`) VALUES
-('Food'),
-('Transport'),
-('Accommodation'),
-('Entertainment'),
-('Shopping'),
-('Bills'),
-('Health'),
-('Other');
---> statement-breakpoint
--- Seed Data: Idiomas
-INSERT INTO `language` (`code`, `name`, `native_name`, `flag_emoji`) VALUES
-('pt', 'Portuguese', 'Português', '🇧🇷'),
-('en', 'English', 'English', '🇺🇸'),
-('es', 'Spanish', 'Español', '🇪🇸');
---> statement-breakpoint
--- Seed Data: Status de Convites de Grupo
-INSERT INTO `group_invite_status` (`status`) VALUES
-('pending'),
-('accepted'),
-('expired');
---> statement-breakpoint
--- Seed Data: Status de Jogos
-INSERT INTO `game_status` (`status`) VALUES
-('want_to_play'),
-('playing'),
-('completed'),
-('dropped');
---> statement-breakpoint
--- Seed Data: Moods
-INSERT INTO `moods` (`name`) VALUES
-('happy'),
-('sad'),
-('angry'),
-('anxious'),
-('calm'),
-('excited'),
-('tired'),
-('loved');

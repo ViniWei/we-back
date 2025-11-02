@@ -1,7 +1,7 @@
 {
   "version": "5",
   "dialect": "mysql",
-  "id": "d3354573-fa90-4452-a6f7-3976486672b1",
+  "id": "eb7d8706-5a4f-4d2f-9eb7-1788133a4653",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "tables": {
     "activities": {
@@ -23,6 +23,13 @@
         },
         "trip_id": {
           "name": "trip_id",
+          "type": "int",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "date_id": {
+          "name": "date_id",
           "type": "int",
           "primaryKey": false,
           "notNull": false,
