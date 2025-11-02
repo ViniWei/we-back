@@ -10,9 +10,11 @@ import {
 
 const router = Router();
 
-router.get("/", authMiddleware.verifyToken, getAll);
-router.get("/:id", authMiddleware.verifyToken, get);
-router.post("/", authMiddleware.verifyToken, create);
-router.post("/api", authMiddleware.verifyToken, createFromApi);
+router.use(authMiddleware.verifyToken);
+
+router.get("/", getAll);
+router.get("/:id", get);
+router.post("/", create);
+router.post("/api", createFromApi);
 
 export default router;

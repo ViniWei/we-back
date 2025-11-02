@@ -1,1 +1,0 @@
-ALTER TABLE `finances` ADD `transaction_date` date NOT NULL;

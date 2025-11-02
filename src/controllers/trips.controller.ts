@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import tripsRepository from "../repositories/trips.repository";
+import activitiesRepository from "../repositories/activities.repository";
 import errorHelper from "../helper/error.helper";
 import tripsService from "../services/trips.service";
 import {
@@ -35,12 +36,11 @@ function parseTripFromRequest(
     trip.end_date = new Date(endDate);
   }
 
-  // Map status to status_id (assumindo: planned=1, ongoing=2, finished=3, canceled=4)
+  // Map status to status_id (pending=1, canceled=2, done=3)
   const statusMap: Record<string, number> = {
-    Planejando: 1,
-    "Em andamento": 2,
-    Finalizada: 3,
-    Cancelada: 4,
+    pending: 1,
+    canceled: 2,
+    done: 3,
   };
 
   if (status) {
@@ -137,6 +137,17 @@ export async function createTrip(
     newTripData.created_by = (req as any).user?.id;
 
     const newTrip = await tripsRepository.create(newTripData);
+
+    // Criar o registro em activities apontando para a trip, com event_name = destination
+    await activitiesRepository.create({
+      group_id: groupId,
+      trip_id: newTrip.id,
+      date_id: undefined,
+      event_name: newTripData.destination || "", // Nome do destino da viagem
+      date: newTripData.start_date!, // Usa a data de início da trip
+      created_by: (req as any).user?.id,
+    });
+
     const formattedTrip = tripsService.formatTripResponse(newTrip as any);
     res.status(201).json(formattedTrip);
   } catch (error) {
@@ -310,6 +321,18 @@ export async function updateTrip(
           )
         );
     }
+
+    // Atualizar o activity correspondente
+    const activities = await activitiesRepository.getAllByTripId(Number(id));
+    if (activities.length > 0 && tripData.destination) {
+      const activity = activities[0];
+      await activitiesRepository.update(activity.id!, {
+        event_name: tripData.destination, // Atualizar com o novo destino
+        date: tripData.start_date,
+        modified_by: (req as any).user?.id,
+      });
+    }
+
     const formattedTrip = tripsService.formatTripResponse(updatedTrip);
     res.json(formattedTrip);
   } catch (error) {

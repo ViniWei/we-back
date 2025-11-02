@@ -36,7 +36,7 @@
     "@types/handlebars": "^4.0.40",
     "@types/jsonwebtoken": "^9.0.10",
     "@types/mysql": "^2.15.26",
-    "@types/node": "^22.18.8",
+    "@types/node": "^22.18.13",
     "@types/nodemailer": "^6.4.20",
     "drizzle-kit": "^0.31.5",
     "eslint": "^9.30.1",

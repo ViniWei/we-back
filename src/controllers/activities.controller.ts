@@ -20,12 +20,10 @@ export class ActivitiesController {
         !activityData.group_id ||
         !activityData.event_name ||
         !activityData.date ||
-        !activityData.location ||
         !activityData.created_by
       ) {
         res.status(400).json({
-          error:
-            "group_id, event_name, date, location and created_by are required.",
+          error: "group_id, event_name, date and created_by are required.",
           errorCode: "missing-required-fields",
         });
         return;

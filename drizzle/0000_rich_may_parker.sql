@@ -2,16 +2,33 @@ CREATE TABLE `activities` (
 	`id` int AUTO_INCREMENT NOT NULL,
 	`group_id` int,
 	`trip_id` int,
-	`suggestion_id` int,
 	`event_name` varchar(255),
 	`date` datetime NOT NULL,
-	`location` varchar(255),
-	`description` text,
 	`created_by` int,
 	`modified_by` int,
 	`created_at` timestamp DEFAULT (now()),
 	`modified_at` timestamp DEFAULT (now()),
 	CONSTRAINT `activities_id` PRIMARY KEY(`id`)
+);
+--> statement-breakpoint
+CREATE TABLE `date_status` (
+	`id` int AUTO_INCREMENT NOT NULL,
+	`status` varchar(50) NOT NULL,
+	CONSTRAINT `date_status_id` PRIMARY KEY(`id`)
+);
+--> statement-breakpoint
+CREATE TABLE `dates` (
+	`id` int AUTO_INCREMENT NOT NULL,
+	`group_id` int NOT NULL,
+	`date` datetime NOT NULL,
+	`location` varchar(255),
+	`description` text,
+	`status_id` int NOT NULL,
+	`created_by` int,
+	`modified_by` int,
+	`created_at` timestamp DEFAULT (now()),
+	`modified_at` timestamp DEFAULT (now()),
+	CONSTRAINT `dates_id` PRIMARY KEY(`id`)
 );
 --> statement-breakpoint
 CREATE TABLE `finance_type` (
@@ -27,6 +44,7 @@ CREATE TABLE `finances` (
 	`amount` float,
 	`type_id` int,
 	`instalments` int DEFAULT 1,
+	`transaction_date` date NOT NULL,
 	`created_by` int,
 	`modified_by` int,
 	`created_at` timestamp DEFAULT (now()),
@@ -105,6 +123,7 @@ CREATE TABLE `movie_list_items` (
 	`id` int AUTO_INCREMENT NOT NULL,
 	`movie_id` int,
 	`list_id` int,
+	`created_by` int,
 	`created_at` timestamp DEFAULT (now()),
 	CONSTRAINT `movie_list_items_id` PRIMARY KEY(`id`)
 );
@@ -168,6 +187,8 @@ CREATE TABLE `trips` (
 CREATE TABLE `user_groups` (
 	`id` int AUTO_INCREMENT NOT NULL,
 	`active` tinyint DEFAULT 1,
+	`group_image_path` varchar(500),
+	`relationship_start_date` datetime,
 	`created_at` date,
 	CONSTRAINT `user_groups_id` PRIMARY KEY(`id`)
 );
@@ -187,3 +208,56 @@ CREATE TABLE `users` (
 	CONSTRAINT `users_id` PRIMARY KEY(`id`),
 	CONSTRAINT `users_email_unique` UNIQUE(`email`)
 );
+--> statement-breakpoint
+-- Seed Data: Status de Dates
+INSERT INTO `date_status` (`status`) VALUES 
+('pending'),
+('canceled'),
+('done');
+--> statement-breakpoint
+-- Seed Data: Status de Trips
+INSERT INTO `trip_status` (`status`) VALUES 
+('pending'),
+('canceled'),
+('done');
+--> statement-breakpoint
+-- Seed Data: Tipos de Finanças
+INSERT INTO `finance_type` (`type`) VALUES
+('Food'),
+('Transport'),
+('Accommodation'),
+('Entertainment'),
+('Shopping'),
+('Bills'),
+('Health'),
+('Other');
+--> statement-breakpoint
+-- Seed Data: Idiomas
+INSERT INTO `language` (`code`, `name`, `native_name`, `flag_emoji`) VALUES
+('pt', 'Portuguese', 'Português', '🇧🇷'),
+('en', 'English', 'English', '🇺🇸'),
+('es', 'Spanish', 'Español', '🇪🇸');
+--> statement-breakpoint
+-- Seed Data: Status de Convites de Grupo
+INSERT INTO `group_invite_status` (`status`) VALUES
+('pending'),
+('accepted'),
+('expired');
+--> statement-breakpoint
+-- Seed Data: Status de Jogos
+INSERT INTO `game_status` (`status`) VALUES
+('want_to_play'),
+('playing'),
+('completed'),
+('dropped');
+--> statement-breakpoint
+-- Seed Data: Moods
+INSERT INTO `moods` (`name`) VALUES
+('happy'),
+('sad'),
+('angry'),
+('anxious'),
+('calm'),
+('excited'),
+('tired'),
+('loved');

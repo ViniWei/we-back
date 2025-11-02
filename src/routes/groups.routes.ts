@@ -15,22 +15,16 @@ import {
 
 const router = Router();
 
-router.get("/members", authMiddleware.verifyToken, getMembers);
-router.get("/check-link-status", authMiddleware.verifyToken, checkLinkStatus);
-router.get("/group-image", authMiddleware.verifyToken, getGroupImage);
-router.get(
-  "/relationship-start-date",
-  authMiddleware.verifyToken,
-  getRelationshipStartDate
-);
-router.get("/:id", authMiddleware.verifyToken, get);
-router.post("/generate-code", authMiddleware.verifyToken, generateInviteCode);
-router.post("/join", authMiddleware.verifyToken, joinGroup);
-router.put("/group-image", authMiddleware.verifyToken, updateGroupImage);
-router.put(
-  "/relationship-start-date",
-  authMiddleware.verifyToken,
-  updateRelationshipStartDate
-);
+router.use(authMiddleware.verifyToken);
+
+router.get("/members", getMembers);
+router.get("/check-link-status", checkLinkStatus);
+router.get("/group-image", getGroupImage);
+router.get("/relationship-start-date", getRelationshipStartDate);
+router.get("/:id", get);
+router.post("/generate-code", generateInviteCode);
+router.post("/join", joinGroup);
+router.put("/group-image", updateGroupImage);
+router.put("/relationship-start-date", updateRelationshipStartDate);
 
 export default router;
