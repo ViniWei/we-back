@@ -36,6 +36,7 @@ export const get = async (req: Request, res: Response): Promise<Response> => {
       name: user.name,
       email: user.email,
       emailVerified: user.emailVerified === 1,
+      firstLogin: user.firstLogin === 1,
       groupId: user.groupId?.toString(),
       createdAt:
         user.registrationDate?.toISOString() || new Date().toISOString(),
@@ -97,11 +98,11 @@ export const create = async (
     }
 
     const { verificationCode, expiresAt } = generateVerificationCode();
-
     const user: any = {
       name,
       email,
       password: usersService.encryptPassword(password),
+      registrationDate: new Date(),
       verificationCode: verificationCode,
       verificationExpires: expiresAt,
       emailVerified: 0,
@@ -129,6 +130,7 @@ export const create = async (
         name: newUser.name,
         email: newUser.email,
         emailVerified: newUser.emailVerified === 1,
+        firstLogin: true, // Sempre true na criação
         groupId: newUser.groupId?.toString() || null,
         createdAt:
           newUser.registrationDate?.toISOString() || new Date().toISOString(),
@@ -202,6 +204,14 @@ export const login = async (req: Request, res: Response): Promise<Response> => {
       groupId: storedUser.groupId,
     });
 
+    // Verificar se é o primeiro login e alterar para false
+    const isFirstLogin = storedUser.firstLogin === 1;
+    if (isFirstLogin) {
+      await usersRepository.update("id", storedUser.id!, {
+        firstLogin: 0,
+      } as any);
+    }
+
     return res.json({
       message: "Login successful.",
       accessToken,
@@ -211,6 +221,7 @@ export const login = async (req: Request, res: Response): Promise<Response> => {
         name: storedUser.name,
         email: storedUser.email,
         emailVerified: storedUser.emailVerified === 1,
+        firstLogin: isFirstLogin,
         groupId: storedUser.groupId?.toString(),
         createdAt:
           storedUser.registrationDate?.toISOString() ||
@@ -707,25 +718,32 @@ export const googleAuth = async (
   }
 
   try {
-    // Verificar se o usuário já existe
     let user = await usersRepository.getByEmail(email);
 
     const jwtHelper = (await import("../helper/jwt.helper")).default;
 
     if (!user) {
-      // Criar novo usuário
       const newUser: any = {
         name,
         email,
         password: usersService.encryptPassword(
           crypto.randomBytes(32).toString("hex")
-        ), // Password aleatório
-        emailVerified: 1, // Email já verificado pelo Google
+        ),
+        registrationDate: new Date(),
+        emailVerified: 1,
+        firstLogin: 1,
         verificationCode: "",
         verificationExpires: undefined,
       };
 
       user = await usersRepository.create(newUser);
+    }
+
+    const isFirstLogin = user.firstLogin === 1;
+    if (isFirstLogin) {
+      await usersRepository.update("id", user.id!, {
+        firstLogin: 0,
+      } as any);
     }
 
     const { accessToken, refreshToken } = jwtHelper.generateTokens({
@@ -743,6 +761,7 @@ export const googleAuth = async (
         name: user.name,
         email: user.email,
         emailVerified: user.emailVerified === 1,
+        firstLogin: isFirstLogin,
         groupId: user.groupId?.toString(),
         createdAt:
           user.registrationDate?.toISOString() || new Date().toISOString(),

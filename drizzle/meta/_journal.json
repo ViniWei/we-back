@@ -8,6 +8,20 @@
       "when": 1762048624582,
       "tag": "0000_amused_mongoose",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "5",
+      "when": 1762612229292,
+      "tag": "0001_breezy_alex_wilder",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "5",
+      "when": 1762643937905,
+      "tag": "0002_smart_nebula",
+      "breakpoints": true
     }
   ]
 }

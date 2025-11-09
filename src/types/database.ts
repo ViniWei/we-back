@@ -7,6 +7,7 @@ export interface IUser {
   verificationCode?: string;
   verificationExpires?: Date;
   emailVerified?: number;
+  firstLogin?: number;
   groupInviteId?: number;
   groupId?: number;
   languageId?: number;
