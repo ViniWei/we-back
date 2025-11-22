@@ -57,22 +57,36 @@ function parseTripFromRequest(
   return trip;
 }
 
-export async function getAllTrips(req: Request, res: Response): Promise<Response | void> {
+export async function getAllTrips(
+  req: Request,
+  res: Response
+): Promise<Response | void> {
   try {
     const groupId = (req as any).user?.groupId;
     if (!groupId) {
-      return res.status(400).send(
-        errorHelper.buildStandardResponse("User group not found", "user-group-not-found")
-      );
+      return res
+        .status(400)
+        .send(
+          errorHelper.buildStandardResponse(
+            "User group not found",
+            "user-group-not-found"
+          )
+        );
     }
 
     const trips = await tripsRepository.getAll(groupId);
-    const formattedTrips = trips.map((trip) => tripsService.formatTripResponse(trip));
+    const formattedTrips = trips.map((trip) =>
+      tripsService.formatTripResponse(trip)
+    );
     res.json(formattedTrips);
   } catch (error) {
-    return res
-      .status(500)
-      .send(errorHelper.buildStandardResponse("Error while fetching trips", "error-db-get-trips", error));
+    return res.status(500).send(
+      errorHelper.buildStandardResponse(
+        "Error while fetching trips",
+        "error-db-get-trips",
+        error
+      )
+    );
   }
 }
 
@@ -111,8 +125,6 @@ export async function createTrip(req: Request, res: Response): Promise<Response 
         trip_id: (newTrip as any).id,
         event_name: `Viagem: ${newTripData.destination}`,
         date: newTripData.start_date,
-        location: newTripData.destination,
-        description: "Atividade gerada automaticamente ao criar a viagem",
         created_by: (req as any).user?.id,
         created_at: new Date(),
       });
@@ -129,151 +141,253 @@ export async function createTrip(req: Request, res: Response): Promise<Response 
   }
 }
 
-export async function getUpcomingTrips(req: Request, res: Response): Promise<Response | void> {
+export async function getUpcomingTrips(
+  req: Request,
+  res: Response
+): Promise<Response | void> {
   try {
     const groupId = (req as any).user?.groupId;
     if (!groupId) {
-      return res.status(400).send(
-        errorHelper.buildStandardResponse("User group not found", "user-group-not-found")
-      );
+      return res
+        .status(400)
+        .send(
+          errorHelper.buildStandardResponse(
+            "User group not found",
+            "user-group-not-found"
+          )
+        );
     }
 
     const trips = await tripsRepository.getUpcoming(groupId);
-    const formattedTrips = trips.map((trip) => tripsService.formatTripResponse(trip));
+    const formattedTrips = trips.map((trip) =>
+      tripsService.formatTripResponse(trip)
+    );
     res.json(formattedTrips);
   } catch (error) {
-    return res
-      .status(500)
-      .send(errorHelper.buildStandardResponse("Error while fetching upcoming trips", "error-db-get-upcoming-trips", error));
+    return res.status(500).send(
+      errorHelper.buildStandardResponse(
+        "Error while fetching upcoming trips",
+        "error-db-get-upcoming-trips",
+        error
+      )
+    );
   }
 }
 
-export async function getPastTrips(req: Request, res: Response): Promise<Response | void> {
+export async function getPastTrips(
+  req: Request,
+  res: Response
+): Promise<Response | void> {
   try {
     const groupId = (req as any).user?.groupId;
     if (!groupId) {
-      return res.status(400).send(
-        errorHelper.buildStandardResponse("User group not found", "user-group-not-found")
-      );
+      return res
+        .status(400)
+        .send(
+          errorHelper.buildStandardResponse(
+            "User group not found",
+            "user-group-not-found"
+          )
+        );
     }
 
     const trips = await tripsRepository.getPast(groupId);
-    const formattedTrips = trips.map((trip) => tripsService.formatTripResponse(trip));
+    const formattedTrips = trips.map((trip) =>
+      tripsService.formatTripResponse(trip)
+    );
     res.json(formattedTrips);
   } catch (error) {
-    return res
-      .status(500)
-      .send(errorHelper.buildStandardResponse("Error while fetching past trips", "error-db-get-past-trips", error));
+    return res.status(500).send(
+      errorHelper.buildStandardResponse(
+        "Error while fetching past trips",
+        "error-db-get-past-trips",
+        error
+      )
+    );
   }
 }
 
-export async function getTripById(req: Request, res: Response): Promise<Response | void> {
+export async function getTripById(
+  req: Request,
+  res: Response
+): Promise<Response | void> {
   const { id } = req.params;
   try {
     const groupId = (req as any).user?.groupId;
     if (!groupId) {
-      return res.status(400).send(
-        errorHelper.buildStandardResponse("User group not found", "user-group-not-found")
-      );
+      return res
+        .status(400)
+        .send(
+          errorHelper.buildStandardResponse(
+            "User group not found",
+            "user-group-not-found"
+          )
+        );
     }
 
     const trip = await tripsRepository.getById(Number(id), groupId);
     if (!trip) {
-      return res.status(404).send(
-        errorHelper.buildStandardResponse("Trip not found", "trip-not-found")
-      );
+      return res
+        .status(404)
+        .send(
+          errorHelper.buildStandardResponse(
+            "Trip not found",
+            "trip-not-found"
+          )
+        );
     }
     const formattedTrip = tripsService.formatTripResponse(trip);
     res.json(formattedTrip);
   } catch (error) {
-    return res
-      .status(500)
-      .send(errorHelper.buildStandardResponse("Error while fetching trip", "error-db-get-trip", error));
+    return res.status(500).send(
+      errorHelper.buildStandardResponse(
+        "Error while fetching trip",
+        "error-db-get-trip",
+        error
+      )
+    );
   }
 }
 
-export async function updateTrip(req: Request, res: Response): Promise<Response | void> {
+export async function updateTrip(
+  req: Request,
+  res: Response
+): Promise<Response | void> {
   const { id } = req.params;
 
-  const validation = tripsService.validateTripUpdateRequest(req.body);
+  const validation = tripsService.validateTripUpdateRequest(
+    req.body as ITripUpdateRequest
+  );
   if (!validation.isValid) {
-    return res
-      .status(400)
-      .send(errorHelper.buildStandardResponse(`Validation failed: ${validation.errors.join(", ")}`, "validation-failed"));
+    return res.status(400).send(
+      errorHelper.buildStandardResponse(
+        `Validation failed: ${validation.errors.join(", ")}`,
+        "validation-failed"
+      )
+    );
   }
 
   try {
     const groupId = (req as any).user?.groupId;
     if (!groupId) {
-      return res.status(400).send(
-        errorHelper.buildStandardResponse("User group not found", "user-group-not-found")
-      );
+      return res
+        .status(400)
+        .send(
+          errorHelper.buildStandardResponse(
+            "User group not found",
+            "user-group-not-found"
+          )
+        );
     }
 
-    const tripData = parseTripFromRequest(req.body);
-    const updatedTrip = await tripsRepository.update(Number(id), tripData, groupId);
+    const tripData = parseTripFromRequest(
+      req.body as ITripCreateRequest | ITripUpdateRequest
+    );
+    const updatedTrip = await tripsRepository.update(
+      Number(id),
+      tripData,
+      groupId
+    );
 
     if (!updatedTrip) {
-      return res.status(404).send(
-        errorHelper.buildStandardResponse("Trip not found to update", "trip-not-found")
-      );
+      return res
+        .status(404)
+        .send(
+          errorHelper.buildStandardResponse(
+            "Trip not found to update",
+            "trip-not-found"
+          )
+        );
     }
 
     const formattedTrip = tripsService.formatTripResponse(updatedTrip);
     res.json(formattedTrip);
   } catch (error) {
-    return res
-      .status(500)
-      .send(errorHelper.buildStandardResponse("Error while updating trip", "error-db-update-trip", error));
+    return res.status(500).send(
+      errorHelper.buildStandardResponse(
+        "Error while updating trip",
+        "error-db-update-trip",
+        error
+      )
+    );
   }
 }
 
-export async function deleteTrip(req: Request<{ id: string }>, res: Response): Promise<Response | void> {
+export async function deleteTrip(
+  req: Request<{ id: string }>,
+  res: Response
+): Promise<Response | void> {
   const { id } = req.params;
   try {
     const result = await tripsRepository.remove(Number(id));
     if (!result) {
-      return res.status(404).send(
-        errorHelper.buildStandardResponse("Trip not found to delete", "trip-not-found")
-      );
+      return res
+        .status(404)
+        .send(
+          errorHelper.buildStandardResponse(
+            "Trip not found to delete",
+            "trip-not-found"
+          )
+        );
     }
     res.status(204).send();
   } catch (error) {
-    return res
-      .status(500)
-      .send(errorHelper.buildStandardResponse("Error while deleting trip", "error-db-delete-trip", error));
+    return res.status(500).send(
+      errorHelper.buildStandardResponse(
+        "Error while deleting trip",
+        "error-db-delete-trip",
+        error
+      )
+    );
   }
 }
 
-export async function addPhotosToTrip(req: Request, res: Response): Promise<Response | void> {
+export async function addPhotosToTrip(
+  req: Request,
+  res: Response
+): Promise<Response | void> {
   const { id } = req.params;
 
   if (!req.files || (Array.isArray(req.files) && req.files.length === 0)) {
-    return res
-      .status(400)
-      .send(errorHelper.buildStandardResponse("No files were uploaded", "no-files-uploaded"));
+    return res.status(400).send(
+      errorHelper.buildStandardResponse(
+        "No files were uploaded",
+        "no-files-uploaded"
+      )
+    );
   }
 
   try {
     const groupId = (req as any).user?.groupId;
     if (!groupId) {
-      return res.status(400).send(
-        errorHelper.buildStandardResponse("User group not found", "user-group-not-found")
-      );
+      return res
+        .status(400)
+        .send(
+          errorHelper.buildStandardResponse(
+            "User group not found",
+            "user-group-not-found"
+          )
+        );
     }
 
     const trip = await tripsRepository.getById(Number(id), groupId);
     if (!trip) {
-      return res.status(404).send(
-        errorHelper.buildStandardResponse("Trip not found", "trip-not-found")
-      );
+      return res
+        .status(404)
+        .send(
+          errorHelper.buildStandardResponse(
+            "Trip not found",
+            "trip-not-found"
+          )
+        );
     }
 
     const files = Array.isArray(req.files)
       ? req.files
       : Object.values(req.files).flat();
-    const photoUrls = files.map(
-      (file: any) => `${req.protocol}://${req.get("host")}/uploads/${file.filename}`
+    const photoUrls = (files as any[]).map(
+      (file: any) =>
+        `${req.protocol}://${req.get("host")}/uploads/${file.filename}`
     );
 
     await tripsRepository.addPhotos(Number(id), photoUrls);
@@ -286,26 +400,41 @@ export async function addPhotosToTrip(req: Request, res: Response): Promise<Resp
       res.status(200).json({ message: "Photos added successfully" });
     }
   } catch (error) {
-    return res
-      .status(500)
-      .send(errorHelper.buildStandardResponse("Error while adding photos", "error-db-add-photos", error));
+    return res.status(500).send(
+      errorHelper.buildStandardResponse(
+        "Error while adding photos",
+        "error-db-add-photos",
+        error
+      )
+    );
   }
 }
 
-export async function deleteTripByCity(req: Request, res: Response): Promise<Response | void> {
+export async function deleteTripByCity(
+  req: Request,
+  res: Response
+): Promise<Response | void> {
   try {
     const groupId = (req as any).user?.groupId;
     if (!groupId) {
-      return res.status(400).send(
-        errorHelper.buildStandardResponse("User group not found", "user-group-not-found")
-      );
+      return res
+        .status(400)
+        .send(
+          errorHelper.buildStandardResponse(
+            "User group not found",
+            "user-group-not-found"
+          )
+        );
     }
 
     const { city, startDate } = req.body;
 
     if (!city && !startDate) {
       return res.status(400).send(
-        errorHelper.buildStandardResponse("City or startDate required to delete a trip.", "missing-fields")
+        errorHelper.buildStandardResponse(
+          "City or startDate required to delete a trip.",
+          "missing-fields"
+        )
       );
     }
 
@@ -319,16 +448,25 @@ export async function deleteTripByCity(req: Request, res: Response): Promise<Res
 
     if (!deleted) {
       return res.status(404).send(
-        errorHelper.buildStandardResponse(`No trip found for ${city || "the given date"}.`, "trip-not-found")
+        errorHelper.buildStandardResponse(
+          `No trip found for ${city || "the given date"}.`,
+          "trip-not-found"
+        )
       );
     }
 
     return res.status(200).json({
-      message: `Trip ${city ? `to ${city}` : ""} has been successfully deleted.`,
+      message: `Trip ${
+        city ? `to ${city}` : ""
+      } has been successfully deleted.`,
     });
   } catch (error) {
-    return res
-      .status(500)
-      .send(errorHelper.buildStandardResponse("Error while deleting trip", "error-db-delete-trip", error));
+    return res.status(500).send(
+      errorHelper.buildStandardResponse(
+        "Error while deleting trip",
+        "error-db-delete-trip",
+        error
+      )
+    );
   }
 }

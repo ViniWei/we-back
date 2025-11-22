@@ -11,6 +11,9 @@ import {
   updateUserLanguage,
   refreshToken,
   requestVerificationCode,
+  requestResetPassword,
+  resetPassword,
+  googleAuth,
 } from "../controllers/users.controller";
 
 const router = Router();
@@ -28,5 +31,8 @@ router.post(
 router.post("/refresh-token", refreshToken);
 router.patch("/change-password", authMiddleware.verifyToken, changePassword);
 router.patch("/language", authMiddleware.verifyToken, updateUserLanguage);
+router.post("/requestResetPassword", requestResetPassword);
+router.post("/resetPassword", resetPassword);
+router.post("/google-auth", googleAuth);
 
 export default router;

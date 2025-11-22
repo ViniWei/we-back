@@ -9,6 +9,7 @@ export interface IFinance {
   amount?: number;
   type_id?: number;
   instalments?: number;
+  transaction_date?: Date;
   created_by?: number;
   modified_by?: number;
   created_at?: Date;
@@ -23,6 +24,7 @@ const toSnakeCase = (data: any): IFinance => ({
   amount: data.amount,
   type_id: data.typeId,
   instalments: data.instalments,
+  transaction_date: data.transactionDate,
   created_by: data.createdBy,
   modified_by: data.modifiedBy,
   created_at: data.createdAt,
@@ -42,7 +44,6 @@ const getAllByGroupId = async (groupId: number): Promise<IFinance[]> => {
   return result.map(toSnakeCase);
 };
 
-// Alias para compatibilidade
 const getByGroupId = getAllByGroupId;
 
 const getById = async (id: number): Promise<IFinance | undefined> => {
@@ -58,12 +59,14 @@ const create = async (data: Partial<IFinance>): Promise<IFinance> => {
     amount: data.amount,
     typeId: data.type_id,
     instalments: data.instalments ?? 1,
+    transactionDate: data.transaction_date || now, // garante valor
     createdBy: data.created_by,
     modifiedBy: data.modified_by,
     createdAt: data.created_at || now,
     modifiedAt: data.modified_at || now,
   });
-  const insertId = Number(result[0].insertId);
+
+  const insertId = Number((result as any)[0].insertId);
   return (await getById(insertId))!;
 };
 
@@ -73,6 +76,8 @@ const update = async (id: number, data: Partial<IFinance>): Promise<void> => {
   if (data.amount !== undefined) updateData.amount = data.amount;
   if (data.type_id !== undefined) updateData.typeId = data.type_id;
   if (data.instalments !== undefined) updateData.instalments = data.instalments;
+  if (data.transaction_date !== undefined)
+    updateData.transactionDate = data.transaction_date;
   if (data.modified_by !== undefined) updateData.modifiedBy = data.modified_by;
   updateData.modifiedAt = new Date();
 
@@ -90,7 +95,7 @@ const deleteAllByGroupId = async (groupId: number): Promise<void> => {
 export default {
   getAll,
   getAllByGroupId,
-  getByGroupId, // Alias
+  getByGroupId, 
   getById,
   create,
   update,

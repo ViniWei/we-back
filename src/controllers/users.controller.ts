@@ -12,6 +12,9 @@ import {
   IVerificationCodeData,
   IChangePasswordRequest,
   IUpdateUserLanguageRequest,
+  IRequestResetPasswordRequest,
+  IResetPasswordRequest,
+  IGoogleAuthRequest,
 } from "../types/api";
 import { CreateUser } from "../types/database";
 
@@ -33,6 +36,7 @@ export const get = async (req: Request, res: Response): Promise<Response> => {
       name: user.name,
       email: user.email,
       emailVerified: user.emailVerified === 1,
+      firstLogin: user.firstLogin === 1,
       groupId: user.groupId?.toString(),
       createdAt:
         user.registrationDate?.toISOString() || new Date().toISOString(),
@@ -57,6 +61,18 @@ export const create = async (
   res: Response
 ): Promise<Response> => {
   const { name, email, password }: ICreateUserRequest = req.body;
+
+  if (!name || !email || !password) {
+    return res
+      .status(400)
+      .send(
+        errorHelper.buildStandardResponse(
+          "name, email and password are required.",
+          "missing-required-fields"
+        )
+      );
+  }
+
   if (!usersService.verifyEmailFormat(email)) {
     return res
       .status(400)
@@ -82,11 +98,11 @@ export const create = async (
     }
 
     const { verificationCode, expiresAt } = generateVerificationCode();
-
     const user: any = {
       name,
       email,
       password: usersService.encryptPassword(password),
+      registrationDate: new Date(),
       verificationCode: verificationCode,
       verificationExpires: expiresAt,
       emailVerified: 0,
@@ -114,6 +130,7 @@ export const create = async (
         name: newUser.name,
         email: newUser.email,
         emailVerified: newUser.emailVerified === 1,
+        firstLogin: true, // Sempre true na criação
         groupId: newUser.groupId?.toString() || null,
         createdAt:
           newUser.registrationDate?.toISOString() || new Date().toISOString(),
@@ -148,8 +165,8 @@ export const login = async (req: Request, res: Response): Promise<Response> => {
       .status(400)
       .send(
         errorHelper.buildStandardResponse(
-          "Email and password are required.",
-          "missing-email-or-password"
+          "email and password are required.",
+          "missing-required-fields"
         )
       );
   }
@@ -187,6 +204,14 @@ export const login = async (req: Request, res: Response): Promise<Response> => {
       groupId: storedUser.groupId,
     });
 
+    // Verificar se é o primeiro login e alterar para false
+    const isFirstLogin = storedUser.firstLogin === 1;
+    if (isFirstLogin) {
+      await usersRepository.update("id", storedUser.id!, {
+        firstLogin: 0,
+      } as any);
+    }
+
     return res.json({
       message: "Login successful.",
       accessToken,
@@ -196,6 +221,7 @@ export const login = async (req: Request, res: Response): Promise<Response> => {
         name: storedUser.name,
         email: storedUser.email,
         emailVerified: storedUser.emailVerified === 1,
+        firstLogin: isFirstLogin,
         groupId: storedUser.groupId?.toString(),
         createdAt:
           storedUser.registrationDate?.toISOString() ||
@@ -229,8 +255,8 @@ export const verifyEmailCode = async (
       .status(400)
       .send(
         errorHelper.buildStandardResponse(
-          "Email and verification code are required.",
-          "missing-email-or-code"
+          "email and verification_code are required.",
+          "missing-required-fields"
         )
       );
   }
@@ -298,8 +324,8 @@ export const changePassword = async (
       .status(400)
       .send(
         errorHelper.buildStandardResponse(
-          "Current password and new password are required.",
-          "missing-passwords"
+          "currentPassword and newPassword are required.",
+          "missing-required-fields"
         )
       );
   }
@@ -387,8 +413,8 @@ export const updateUserLanguage = async (
       .status(400)
       .send(
         errorHelper.buildStandardResponse(
-          "Language ID is required.",
-          "missing-language-id"
+          "language_id is required.",
+          "missing-required-fields"
         )
       );
   }
@@ -434,8 +460,8 @@ export const refreshToken = async (
       .status(400)
       .send(
         errorHelper.buildStandardResponse(
-          "Refresh token is required.",
-          "missing-refresh-token"
+          "refreshToken is required.",
+          "missing-required-fields"
         )
       );
   }
@@ -529,3 +555,229 @@ function generateVerificationCode(): IVerificationCodeData {
     expiresAt,
   };
 }
+
+export const requestResetPassword = async (
+  req: Request,
+  res: Response
+): Promise<Response> => {
+  const { email }: IRequestResetPasswordRequest = req.body;
+
+  if (!email) {
+    return res
+      .status(400)
+      .send(
+        errorHelper.buildStandardResponse(
+          "email is required.",
+          "missing-required-fields"
+        )
+      );
+  }
+
+  if (!usersService.verifyEmailFormat(email)) {
+    return res
+      .status(400)
+      .send(
+        errorHelper.buildStandardResponse(
+          "Invalid email format.",
+          "email-invalid-format"
+        )
+      );
+  }
+
+  try {
+    const user = await usersRepository.getByEmail(email);
+    if (!user) {
+      // Por segurança, não revelamos se o email existe ou não
+      return res.json({
+        message: "If the email exists, a reset code has been sent.",
+      });
+    }
+
+    const { verificationCode, expiresAt } = generateVerificationCode();
+
+    await usersRepository.update("id", user.id!, {
+      verificationCode: verificationCode,
+      verificationExpires: expiresAt,
+    } as any);
+
+    try {
+      await mailerService.sendPasswordResetEmail(email, verificationCode);
+    } catch (emailError) {
+      console.error("Error sending password reset email:", emailError);
+    }
+
+    return res.json({
+      message: "If the email exists, a reset code has been sent.",
+    });
+  } catch (error) {
+    return res
+      .status(500)
+      .send(
+        errorHelper.buildStandardResponse(
+          "Error while requesting password reset.",
+          "error-request-reset-password",
+          error
+        )
+      );
+  }
+};
+
+export const resetPassword = async (
+  req: Request,
+  res: Response
+): Promise<Response> => {
+  const { email, code, newPassword }: any = req.body;
+
+  if (!email || !code || !newPassword) {
+    return res
+      .status(400)
+      .send(
+        errorHelper.buildStandardResponse(
+          "email, code and newPassword are required.",
+          "missing-required-fields"
+        )
+      );
+  }
+
+  if (newPassword.length < 6) {
+    return res
+      .status(400)
+      .send(
+        errorHelper.buildStandardResponse(
+          "New password must be at least 6 characters long.",
+          "password-too-short"
+        )
+      );
+  }
+
+  try {
+    const user = await usersRepository.getByEmail(email);
+    if (!user) {
+      return res
+        .status(404)
+        .send(
+          errorHelper.buildStandardResponse("User not found.", "user-not-found")
+        );
+    }
+
+    if (
+      !user.verificationCode ||
+      user.verificationCode !== code ||
+      new Date(user.verificationExpires!) < new Date()
+    ) {
+      return res
+        .status(403)
+        .send(
+          errorHelper.buildStandardResponse(
+            "Invalid or expired reset code.",
+            "invalid-reset-code"
+          )
+        );
+    }
+
+    const hashedPassword = usersService.encryptPassword(newPassword);
+
+    await usersRepository.update("id", user.id!, {
+      password: hashedPassword,
+      verificationCode: "",
+      verificationExpires: undefined,
+    } as any);
+
+    return res.json({
+      message: "Password reset successfully.",
+    });
+  } catch (error) {
+    return res
+      .status(500)
+      .send(
+        errorHelper.buildStandardResponse(
+          "Error while resetting password.",
+          "error-reset-password",
+          error
+        )
+      );
+  }
+};
+
+export const googleAuth = async (
+  req: Request,
+  res: Response
+): Promise<Response> => {
+  const { idToken, email, name, picture, googleId }: IGoogleAuthRequest =
+    req.body;
+
+  if (!idToken || !email || !name || !googleId) {
+    return res
+      .status(400)
+      .send(
+        errorHelper.buildStandardResponse(
+          "idToken, email, name and googleId are required.",
+          "missing-required-fields"
+        )
+      );
+  }
+
+  try {
+    let user = await usersRepository.getByEmail(email);
+
+    const jwtHelper = (await import("../helper/jwt.helper")).default;
+
+    if (!user) {
+      const newUser: any = {
+        name,
+        email,
+        password: usersService.encryptPassword(
+          crypto.randomBytes(32).toString("hex")
+        ),
+        registrationDate: new Date(),
+        emailVerified: 1,
+        firstLogin: 1,
+        verificationCode: "",
+        verificationExpires: undefined,
+      };
+
+      user = await usersRepository.create(newUser);
+    }
+
+    const isFirstLogin = user.firstLogin === 1;
+    if (isFirstLogin) {
+      await usersRepository.update("id", user.id!, {
+        firstLogin: 0,
+      } as any);
+    }
+
+    const { accessToken, refreshToken } = jwtHelper.generateTokens({
+      userId: user.id!,
+      email: user.email,
+      groupId: user.groupId,
+    });
+
+    return res.json({
+      message: "Google authentication successful.",
+      accessToken,
+      refreshToken,
+      user: {
+        id: user.id?.toString(),
+        name: user.name,
+        email: user.email,
+        emailVerified: user.emailVerified === 1,
+        firstLogin: isFirstLogin,
+        groupId: user.groupId?.toString(),
+        createdAt:
+          user.registrationDate?.toISOString() || new Date().toISOString(),
+        updatedAt:
+          user.registrationDate?.toISOString() || new Date().toISOString(),
+      },
+    });
+  } catch (error) {
+    return res
+      .status(500)
+      .send(
+        errorHelper.buildStandardResponse(
+          "Error while authenticating with Google.",
+          "error-google-auth",
+          error
+        )
+      );
+  }
+};

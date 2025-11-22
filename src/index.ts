@@ -15,6 +15,7 @@ import gamesRoutes from "./routes/games.routes";
 import voiceRoutes from "./routes/voice.routes";
 import igdbRoutes from "./api/igdb/igdb.routes";
 import placesRoutes from "./api/places/places.routes";
+import datesRoutes from "./routes/dates.routes";
 import { pool } from "./db";
 import errorHelper from "./helper/error.helper";
 
@@ -37,6 +38,7 @@ app.use("/trips", tripsRoutes);
 app.use("/activities", activitiesRoutes);
 app.use("/games", gamesRoutes);
 app.use("/voice", voiceRoutes);
+app.use("/dates", datesRoutes);
 
 
 app.use("/igdb", igdbRoutes);

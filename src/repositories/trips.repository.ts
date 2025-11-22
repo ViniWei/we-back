@@ -25,6 +25,7 @@ const translateStatus = (status: string): string => {
     planned: "Planejando",
     ongoing: "Em andamento",
     finished: "Finalizada",
+    completed: "Finalizada",
     canceled: "Cancelada",
     cancelled: "Cancelada",
   };
@@ -103,6 +104,7 @@ const getById = async (
   const whereClause = groupId
     ? `WHERE t.id = ${pool.escape(id)} AND t.group_id = ${pool.escape(groupId)}`
     : `WHERE t.id = ${pool.escape(id)}`;
+
   const tripsResult = await getTripsWithPhotos(whereClause);
   return tripsResult.length > 0 ? tripsResult[0] : null;
 };
@@ -117,21 +119,38 @@ const getPast = async (groupId?: number): Promise<ITripWithPhotos[]> => {
 
 const create = async (data: Partial<ITrips>): Promise<ITrips> => {
   const now = new Date();
-  const result = await db.insert(trips).values({
-    groupId: data.group_id,
-    destination: data.destination,
-    startDate: data.start_date,
-    endDate: data.end_date,
-    budget: data.budget,
-    description: data.description,
-    statusId: data.status_id,
-    createdBy: data.created_by,
-    modifiedBy: data.modified_by,
-    createdAt: data.created_at || now,
-    modifiedAt: data.modified_at || now,
-  });
-  const insertId = Number(result[0].insertId);
-  const [newTrip] = await db.select().from(trips).where(eq(trips.id, insertId));
+
+  const insertedIds = await db
+    .insert(trips)
+    .values({
+      groupId: data.group_id!,
+      destination: data.destination!,
+      startDate: data.start_date!,
+      endDate: data.end_date!,
+      budget: data.budget ?? null,
+      description: data.description ?? null,
+      statusId: data.status_id ?? null,
+      createdBy: data.created_by ?? null,
+      modifiedBy: data.modified_by ?? data.created_by ?? null,
+      createdAt: data.created_at || now,
+      modifiedAt: data.modified_at || now,
+    })
+    .$returningId();
+
+  if (!insertedIds || insertedIds.length === 0) {
+    throw new Error("No id returned from trips insert");
+  }
+
+  const firstRow: Record<string, any> = insertedIds[0] as any;
+  const newId = Number(
+    "id" in firstRow ? firstRow.id : Object.values(firstRow)[0]
+  );
+
+  if (!newId || Number.isNaN(newId)) {
+    throw new Error("Could not resolve new id from trips insert");
+  }
+
+  const [newTrip] = await db.select().from(trips).where(eq(trips.id, newId));
   return toSnakeCase(newTrip);
 };
 
@@ -204,7 +223,10 @@ const deleteByCity = async (groupId: number, city: string): Promise<boolean> => 
       )) = ?
   `;
 
-  const [result] = await pool.query<ResultSetHeader>(query, [groupId, normalizedCity]);
+  const [result] = await pool.query<ResultSetHeader>(query, [
+    groupId,
+    normalizedCity,
+  ]);
   return result.affectedRows > 0;
 };
 
@@ -218,7 +240,12 @@ const deleteByDate = async (groupId: number, date: string): Promise<boolean> => 
         OR (DATE(?) BETWEEN DATE(start_date) AND DATE(end_date))
       )
   `;
-  const [result] = await pool.query<ResultSetHeader>(query, [groupId, date, date, date]);
+  const [result] = await pool.query<ResultSetHeader>(query, [
+    groupId,
+    date,
+    date,
+    date,
+  ]);
   return result.affectedRows > 0;
 };
 

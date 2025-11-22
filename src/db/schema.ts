@@ -45,6 +45,11 @@ export const gameStatuses = mysqlTable("game_status", {
   status: varchar("status", { length: 50 }).notNull(),
 });
 
+export const dateStatuses = mysqlTable("date_status", {
+  id: int("id").primaryKey().autoincrement(),
+  status: varchar("status", { length: 50 }).notNull(),
+});
+
 export const moods = mysqlTable("moods", {
   id: int("id").primaryKey().autoincrement(),
   name: varchar("name", { length: 50 }).notNull(),
@@ -65,10 +70,11 @@ export const users = mysqlTable("users", {
   name: varchar("name", { length: 255 }).notNull(),
   email: varchar("email", { length: 255 }).notNull().unique(),
   password: varchar("password", { length: 255 }).notNull(),
-  registrationDate: date("registration_date"),
+  registrationDate: datetime("registration_date"),
   verificationCode: varchar("verification_code", { length: 100 }),
   verificationExpires: datetime("verification_expires"),
   emailVerified: tinyint("email_verified").default(0),
+  firstLogin: tinyint("first_login").default(1),
   groupInviteId: int("group_invite_id"),
   groupId: int("group_id"),
   languageId: int("language_id"),
@@ -116,11 +122,22 @@ export const activities = mysqlTable("activities", {
   id: int("id").primaryKey().autoincrement(),
   groupId: int("group_id"),
   tripId: int("trip_id"),
-  suggestionId: int("suggestion_id"),
+  dateId: int("date_id"),
   eventName: varchar("event_name", { length: 255 }),
+  date: datetime("date").notNull(),
+  createdBy: int("created_by"),
+  modifiedBy: int("modified_by"),
+  createdAt: timestamp("created_at").defaultNow(),
+  modifiedAt: timestamp("modified_at").defaultNow(),
+});
+
+export const dates = mysqlTable("dates", {
+  id: int("id").primaryKey().autoincrement(),
+  groupId: int("group_id").notNull(),
   date: datetime("date").notNull(),
   location: varchar("location", { length: 255 }),
   description: text("description"),
+  statusId: int("status_id").notNull(),
   createdBy: int("created_by"),
   modifiedBy: int("modified_by"),
   createdAt: timestamp("created_at").defaultNow(),
@@ -134,6 +151,7 @@ export const finances = mysqlTable("finances", {
   amount: float("amount"),
   typeId: int("type_id"),
   instalments: int("instalments").default(1),
+  transactionDate: date("transaction_date").notNull(),
   createdBy: int("created_by"),
   modifiedBy: int("modified_by"),
   createdAt: timestamp("created_at").defaultNow(),
@@ -183,6 +201,7 @@ export const movieListItems = mysqlTable("movie_list_items", {
   id: int("id").primaryKey().autoincrement(),
   movieId: int("movie_id"),
   listId: int("list_id"),
+  createdBy: int("created_by"),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
@@ -204,8 +223,10 @@ export const usersRelations = relations(users, ({ one, many }) => ({
   createdInvites: many(groupInvites),
   createdTrips: many(trips),
   createdActivities: many(activities),
+  createdDates: many(dates),
   createdFinances: many(finances),
   createdGames: many(games),
+  createdMovieListItems: many(movieListItems),
   moodEntries: many(moodCalendar),
 }));
 
@@ -214,6 +235,7 @@ export const userGroupsRelations = relations(userGroups, ({ many }) => ({
   trips: many(trips),
   suggestions: many(suggestions),
   activities: many(activities),
+  dates: many(dates),
   finances: many(finances),
   games: many(games),
   movieLists: many(movieLists),
@@ -281,9 +303,9 @@ export const activitiesRelations = relations(activities, ({ one }) => ({
     fields: [activities.tripId],
     references: [trips.id],
   }),
-  suggestion: one(suggestions, {
-    fields: [activities.suggestionId],
-    references: [suggestions.id],
+  date: one(dates, {
+    fields: [activities.dateId],
+    references: [dates.id],
   }),
   creator: one(users, {
     fields: [activities.createdBy],
@@ -294,6 +316,27 @@ export const activitiesRelations = relations(activities, ({ one }) => ({
     fields: [activities.modifiedBy],
     references: [users.id],
     relationName: "activityModifier",
+  }),
+}));
+
+export const datesRelations = relations(dates, ({ one }) => ({
+  group: one(userGroups, {
+    fields: [dates.groupId],
+    references: [userGroups.id],
+  }),
+  status: one(dateStatuses, {
+    fields: [dates.statusId],
+    references: [dateStatuses.id],
+  }),
+  creator: one(users, {
+    fields: [dates.createdBy],
+    references: [users.id],
+    relationName: "dateCreator",
+  }),
+  modifier: one(users, {
+    fields: [dates.modifiedBy],
+    references: [users.id],
+    relationName: "dateModifier",
   }),
 }));
 
@@ -367,6 +410,11 @@ export const movieListItemsRelations = relations(movieListItems, ({ one }) => ({
     fields: [movieListItems.listId],
     references: [movieLists.id],
   }),
+  creator: one(users, {
+    fields: [movieListItems.createdBy],
+    references: [users.id],
+    relationName: "movieListItemCreator",
+  }),
 }));
 
 export const moviesRelations = relations(movies, ({ many }) => ({
@@ -398,4 +446,8 @@ export const gameStatusesRelations = relations(gameStatuses, ({ many }) => ({
 
 export const moodsRelations = relations(moods, ({ many }) => ({
   moodEntries: many(moodCalendar),
+}));
+
+export const dateStatusesRelations = relations(dateStatuses, ({ many }) => ({
+  dates: many(dates),
 }));

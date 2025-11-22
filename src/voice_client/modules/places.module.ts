@@ -56,8 +56,11 @@ async function fetchPlaces(
       if (place.types && Array.isArray(place.types))
         obj.tipos = place.types;
 
-     
-      if (place.photos && place.photos.length > 0 && place.photos[0].photo_reference) {
+      if (
+        place.photos &&
+        place.photos.length > 0 &&
+        place.photos[0].photo_reference
+      ) {
         obj.foto = `https://maps.googleapis.com/maps/api/place/photo?maxwidth=800&photoreference=${place.photos[0].photo_reference}&key=${process.env.GOOGLE_API_KEY}`;
       }
 
@@ -70,11 +73,17 @@ async function fetchPlaces(
       data: filteredResults,
     };
   } catch (error: any) {
-    return { success: false, error: `Erro ao consultar o Google Places API: ${error.message}` };
+    return {
+      success: false,
+      error: `Erro ao consultar o Google Places API: ${error.message}`,
+    };
   }
 }
 
-export async function execute(text: string, token?: string): Promise<any> {
+export async function execute(
+  text: string,
+  _params: { userId: number; groupId: number; token?: string }
+): Promise<any> {
   const normalizedText = normalize(text);
 
   if (!normalizedText || normalizedText.trim() === "") {
@@ -84,7 +93,10 @@ export async function execute(text: string, token?: string): Promise<any> {
   const results = await fetchPlaces(normalizedText);
 
   if (!results.success || !results.data || results.data.length === 0) {
-    return { success: false, error: results.error || "Nenhum local encontrado." };
+    return {
+      success: false,
+      error: results.error || "Nenhum local encontrado.",
+    };
   }
 
   return {

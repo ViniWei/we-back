@@ -13,11 +13,6 @@ export class ActivitiesService {
     return result ?? null;
   }
 
-  async getAllActivities(): Promise<IActivities[]> {
-    // ✅ Novo método para retornar todas as atividades
-    return await activitiesRepository.getAll();
-  }
-
   async getActivitiesByGroupId(groupId: number): Promise<IActivities[]> {
     return await activitiesRepository.getAllByGroupId(groupId);
   }
@@ -50,7 +45,7 @@ export class ActivitiesService {
     try {
       await activitiesRepository.deleteById(id);
       return true;
-    } catch {
+    } catch (error) {
       return false;
     }
   }
@@ -63,14 +58,18 @@ export class ActivitiesService {
     return await this.getActivitiesByDateRange(groupId, startDate, endDate);
   }
 
-  async getUpcomingActivities(groupId: number): Promise<IActivities[]> {
-    // ✅ Alterado para pegar todos os eventos futuros (sem limite de dias)
-    const now = new Date();
-    const allActivities = await activitiesRepository.getAllByGroupId(groupId);
+  async getUpcomingActivities(
+    groupId: number,
+    days: number = 7
+  ): Promise<IActivities[]> {
+    const startDate = new Date();
+    const endDate = new Date();
+    endDate.setDate(endDate.getDate() + days);
 
-    return allActivities.filter((activity) => {
-      const activityDate = new Date(activity.date);
-      return activityDate >= now;
-    });
+    return await this.getActivitiesByGroupAndDateRange(
+      groupId,
+      startDate,
+      endDate
+    );
   }
 }

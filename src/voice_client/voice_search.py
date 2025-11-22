@@ -2,7 +2,6 @@ from flask import Flask, jsonify, request, render_template_string
 import speech_recognition as sr
 import tempfile
 import os
-import jwt
 import requests
 
 BACKEND_URL = "http://localhost:3000/voice/process"
@@ -13,24 +12,8 @@ recognizer = sr.Recognizer()
 
 @app.route("/voice/upload", methods=["POST"])
 def recognize_uploaded_audio():
+    # Não valida/obriga JWT aqui; apenas repassa se vier
     auth_header = request.headers.get("Authorization")
-    if not auth_header or not auth_header.startswith("Bearer "):
-        return jsonify({"error": "Missing or invalid JWT token"}), 401
-
-    token = auth_header.split("Bearer ")[1]
-
-    try:
-        payload = jwt.decode(token, options={"verify_signature": False})
-        print("JWT payload:", payload)
-
-        user_id = payload.get("userId")
-        group_id = payload.get("groupId")
-
-        print(f"Decoded JWT → user_id: {user_id}, group_id: {group_id}")
-
-    except Exception as e:
-        print(f"JWT decode error: {e}")
-        return jsonify({"error": "Invalid token"}), 400
 
     if "audio" not in request.files:
         return jsonify({"error": "Audio file not found"}), 400
@@ -39,10 +22,12 @@ def recognize_uploaded_audio():
     temp_path = None
 
     try:
+        # Salva o arquivo temporariamente
         with tempfile.NamedTemporaryFile(delete=False, suffix=".wav") as temp:
             file.save(temp.name)
             temp_path = temp.name
 
+        # Reconhecimento de voz
         with sr.AudioFile(temp_path) as source:
             audio_data = recognizer.record(source)
 
@@ -50,14 +35,17 @@ def recognize_uploaded_audio():
         print(f"Recognized command: {recognized_text}")
 
         try:
+            # Envia o texto e repassa o Authorization (se existir)
+            headers = {}
+            if auth_header:
+                headers["Authorization"] = auth_header
+
             node_response = requests.post(
                 BACKEND_URL,
                 json={
-                    "text": recognized_text,
-                    "user_id": user_id,
-                    "group_id": group_id,
+                    "text": recognized_text
                 },
-                headers={"Authorization": f"Bearer {token}"},
+                headers=headers,
                 timeout=10
             )
 
@@ -79,8 +67,6 @@ def recognize_uploaded_audio():
 
         return jsonify({
             "recognized": recognized_text,
-            "user_id": user_id,
-            "group_id": group_id,
             "node_response": node_data
         }), 200
 

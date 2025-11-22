@@ -56,7 +56,19 @@ const update = async (
     throw new Error(`Field ${String(field)} not found in users table`);
   }
 
-  await db.update(users).set(userData).where(eq(dbField, value));
+  // Coerce value types for numeric fields to avoid mismatches (e.g. '123' vs 123)
+  let whereValue = value;
+  if (
+    (dbField === users.id || dbField === users.groupId) &&
+    typeof value === "string"
+  ) {
+    const parsed = Number(value);
+    if (!Number.isNaN(parsed)) {
+      whereValue = parsed;
+    }
+  }
+
+  await db.update(users).set(userData).where(eq(dbField, whereValue));
 };
 
 export default {

@@ -4,8 +4,9 @@ import financesRepository, {
   IFinance,
 } from "../repositories/finances.repository";
 import errorHelper from "../helper/error.helper";
-import { IFinances } from "../types/database";
+import { IFinances } from "../types/database"; // se não usar, pode remover
 
+// Mapa de tipo_id -> nome da categoria (para devolver pro frontend)
 const financeTypeMap: { [key: number]: string } = {
   1: "Alimentação",
   2: "Transporte",
@@ -17,6 +18,7 @@ const financeTypeMap: { [key: number]: string } = {
   8: "Outros",
 };
 
+// Mapa inverso: nome da categoria -> type_id (para salvar no banco)
 const financeTypeReverseMap: { [key: string]: number } = {
   Alimentação: 1,
   Transporte: 2,
@@ -29,7 +31,7 @@ const financeTypeReverseMap: { [key: string]: number } = {
 };
 
 function convertToFrontendFinance(finance: IFinance) {
-  const converted = {
+  return {
     id: finance.id?.toString() || "0",
     descricao: finance.description || "",
     valor: finance.amount || 0,
@@ -37,10 +39,9 @@ function convertToFrontendFinance(finance: IFinance) {
     data: finance.created_at
       ? new Date(finance.created_at).toISOString().split("T")[0]
       : new Date().toISOString().split("T")[0],
-    groupId: (finance as any).groupId?.toString() || "0",
+    groupId: (finance.group_id || 0).toString(),
+    instalments: finance.instalments ?? 1,
   };
-
-  return converted;
 }
 
 export const findFinanceById = async (
@@ -133,12 +134,19 @@ export const createFinance = async (
   try {
     const typeId = financeTypeReverseMap[financeData.categoria] || 8;
 
-    const finance = {
+    const amount =
+      typeof financeData.valor === "string"
+        ? parseFloat(financeData.valor)
+        : financeData.valor;
+
+    const finance: Partial<IFinance> = {
       group_id,
       description: financeData.descricao,
-      amount: financeData.valor,
+      amount: amount,
       type_id: typeId,
+      instalments: financeData.instalments ?? 1,
       created_by: user_id,
+      modified_by: user_id,
       created_at: new Date(),
       modified_at: new Date(),
     };
@@ -149,6 +157,7 @@ export const createFinance = async (
 
     return res.status(201).json(responseData);
   } catch (error) {
+    console.error("Erro em createFinance:", error);
     return res
       .status(500)
       .send(
@@ -182,14 +191,28 @@ export const updateFinance = async (
         );
     }
 
-    const financeUpdateData: Partial<IFinances> = {};
+    const financeUpdateData: Partial<IFinance> = {};
 
     if (updateData.descricao)
       financeUpdateData.description = updateData.descricao;
-    if (updateData.valor) financeUpdateData.amount = updateData.valor;
-    if (updateData.categoria)
+
+    if (updateData.valor) {
+      financeUpdateData.amount =
+        typeof updateData.valor === "string"
+          ? parseFloat(updateData.valor)
+          : updateData.valor;
+    }
+
+    if (updateData.categoria) {
       financeUpdateData.type_id =
-        financeTypeReverseMap[updateData.categoria] || existingFinance.type_id!;
+        financeTypeReverseMap[updateData.categoria] ||
+        existingFinance.type_id ||
+        8;
+    }
+
+    if (updateData.instalments !== undefined) {
+      financeUpdateData.instalments = updateData.instalments;
+    }
 
     financeUpdateData.modified_by = user_id;
     financeUpdateData.modified_at = new Date();
@@ -199,6 +222,7 @@ export const updateFinance = async (
     const updatedFinance = await financesRepository.getById(Number(id));
     return res.json(convertToFrontendFinance(updatedFinance!));
   } catch (error) {
+    console.error("Erro em updateFinance:", error);
     return res
       .status(500)
       .send(
