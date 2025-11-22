@@ -9,6 +9,7 @@ import tripsRoutes from "./routes/trips.routes";
 import financesRoutes from "./routes/finances.routes";
 import activitiesRoutes from "./routes/activities.routes";
 import datesRoutes from "./routes/dates.routes";
+import voiceRoutes from "./routes/voice.routes";
 import { pool } from "./db";
 import errorHelper from "./helper/error.helper";
 import dotenv from "dotenv";
@@ -34,6 +35,7 @@ app.use("/finances", financesRoutes);
 app.use("/trips", tripsRoutes);
 app.use("/activities", activitiesRoutes);
 app.use("/dates", datesRoutes);
+app.use("/voice", voiceRoutes);
 
 app.get("/", (_req: express.Request, res: express.Response) => {
   res.send("Api working.");
