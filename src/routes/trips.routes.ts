@@ -7,6 +7,7 @@ import {
   getAllTrips,
   getUpcomingTrips,
   getPastTrips,
+  getCanceledTrips,
   getTripById,
   updateTrip,
   deleteTrip,
@@ -35,6 +36,7 @@ router.use(authMiddleware.verifyToken);
 router.get("/", getAllTrips);
 router.get("/upcoming", getUpcomingTrips);
 router.get("/past", getPastTrips);
+router.get("/canceled", getCanceledTrips);
 router.get("/:id", getTripById);
 
 router.post("/", createTrip);

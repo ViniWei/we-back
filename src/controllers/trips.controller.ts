@@ -41,11 +41,24 @@ function parseTripFromRequest(
   };
 
   if (startDate) {
-    trip.start_date = new Date(startDate);
+    // Criar data no formato local sem conversão de timezone
+    // Se vier como "2025-11-26", criar como "2025-11-26 00:00:00"
+    if (typeof startDate === "string" && startDate.includes("-")) {
+      const dateOnly = startDate.split("T")[0]; // "2025-11-26"
+      trip.start_date = new Date(`${dateOnly}T00:00:00.000`);
+    } else {
+      trip.start_date = new Date(startDate);
+    }
   }
 
   if (endDate) {
-    trip.end_date = new Date(endDate);
+    // Criar data no formato local sem conversão de timezone
+    if (typeof endDate === "string" && endDate.includes("-")) {
+      const dateOnly = endDate.split("T")[0]; // "2025-12-12"
+      trip.end_date = new Date(`${dateOnly}T00:00:00.000`);
+    } else {
+      trip.end_date = new Date(endDate);
+    }
   }
 
   // Map status to status_id (pending=1, canceled=2, done=3)
@@ -245,6 +258,41 @@ export async function getPastTrips(
   }
 }
 
+export async function getCanceledTrips(
+  req: Request,
+  res: Response
+): Promise<Response | void> {
+  try {
+    const groupId = (req as any).user?.groupId;
+    if (!groupId) {
+      return res
+        .status(400)
+        .send(
+          errorHelper.buildStandardResponse(
+            "User group not found",
+            "user-group-not-found"
+          )
+        );
+    }
+
+    const trips = await tripsRepository.getCanceled(groupId);
+    const formattedTrips = trips.map((trip) =>
+      tripsService.formatTripResponse(trip)
+    );
+    res.json(formattedTrips);
+  } catch (error) {
+    return res
+      .status(500)
+      .send(
+        errorHelper.buildStandardResponse(
+          "Error while fetching canceled trips",
+          "error-db-get-canceled-trips",
+          error
+        )
+      );
+  }
+}
+
 export async function getTripById(
   req: Request,
   res: Response
@@ -366,6 +414,10 @@ export async function deleteTrip(
 ): Promise<Response | void> {
   const { id } = req.params;
   try {
+    // Deletar todas as atividades vinculadas a essa viagem
+    await activitiesRepository.deleteAllByTripId(Number(id));
+
+    // Deletar a viagem
     const result = await tripsRepository.remove(Number(id));
     if (!result) {
       return res

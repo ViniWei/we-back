@@ -3,6 +3,7 @@ import {
   createFinance,
 } from "../../controllers/finances.controller";
 import intent from "./intent";
+import { parseFinanceIntent, isAIEnabled } from "../../services/ai.service";
 
 const CATEGORIES: Record<string, string[]> = {
   alimentação: [
@@ -98,6 +99,120 @@ function extractAmount(text: string): number | null {
   if (match[2]) value *= 1000;
   return isNaN(value) ? null : parseFloat(value.toFixed(2));
 }
+
+// ============ FUNÇÕES DE CONVERSÃO PARA IA ============
+
+function convertDateString(dateStr: string | null): Date {
+  const now = new Date();
+
+  if (!dateStr || dateStr === "today") {
+    return new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  }
+
+  if (dateStr === "tomorrow") {
+    const d = new Date(now);
+    d.setDate(d.getDate() + 1);
+    return d;
+  }
+
+  if (dateStr === "day_after_tomorrow") {
+    const d = new Date(now);
+    d.setDate(d.getDate() + 2);
+    return d;
+  }
+
+  // Pattern: in_N_days
+  const inDaysMatch = dateStr.match(/^in_(\d+)_days?$/);
+  if (inDaysMatch) {
+    const days = parseInt(inDaysMatch[1]);
+    const d = new Date(now);
+    d.setDate(d.getDate() + days);
+    return d;
+  }
+
+  // ISO date: YYYY-MM-DD
+  if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
+    const parsed = new Date(dateStr);
+    if (!isNaN(parsed.getTime())) {
+      return parsed;
+    }
+  }
+
+  // Default: hoje
+  return new Date(now.getFullYear(), now.getMonth(), now.getDate());
+}
+
+function normalizeCategory(cat: string | null): string {
+  if (!cat) return "Outros";
+
+  const valid = [
+    "alimentação",
+    "transporte",
+    "acomodação",
+    "entretenimento",
+    "compras",
+    "contas",
+    "saúde",
+  ];
+
+  const normalized = cat.toLowerCase().trim();
+
+  if (valid.includes(normalized)) {
+    return normalized.charAt(0).toUpperCase() + normalized.slice(1);
+  }
+
+  return "Outros";
+}
+
+function toLocalISOString(date: Date): string {
+  // Offset para timezone de Brasília (UTC-3)
+  const offsetMin = -180;
+  const ms = date.getTime() + offsetMin * 60000;
+  return new Date(ms).toISOString();
+}
+
+// ============ EXTRAÇÃO COM IA ============
+
+async function extractFinanceDataWithAI(text: string): Promise<any | null> {
+  try {
+    const aiIntent = await parseFinanceIntent(text);
+
+    console.log("[AI Finance] Parsed intent:", aiIntent);
+
+    // Visualização
+    if (aiIntent.action === "view") {
+      return { __action__: "view" };
+    }
+
+    // Criação de despesa
+    if (aiIntent.action === "create") {
+      // Validações
+      if (!aiIntent.amount || aiIntent.amount <= 0) {
+        console.warn("[AI Finance] Invalid amount:", aiIntent.amount);
+      }
+
+      // Converter data
+      const date = convertDateString(aiIntent.date);
+
+      // Normalizar categoria
+      const category = normalizeCategory(aiIntent.category);
+
+      return {
+        descricao: aiIntent.description || "Despesa sem descrição",
+        valor: aiIntent.amount || 0,
+        categoria: category,
+        data: toLocalISOString(date),
+      };
+    }
+
+    return null;
+  } catch (error: any) {
+    console.error("[AI Finance] Error:", error.message);
+    throw error; // Propaga erro para usar fallback
+  }
+}
+
+// ============ EXTRAÇÃO MANUAL (FALLBACK) ============
 
 function extractFinanceData(text: string): any | null {
   const { module, action } = intent.detect(text);
@@ -203,6 +318,7 @@ async function sendFinanceToBackend(
       descricao: finance.descricao,
       valor: finance.valor,
       categoria: finance.categoria,
+      data: finance.data,
     };
 
     const mockReq: any = {
@@ -247,15 +363,35 @@ export async function execute(
   user_id: number,
   group_id: number
 ): Promise<any> {
-  const data = extractFinanceData(text);
-  if (!data)
+  if (!user_id || !group_id) {
+    return { success: false, error: "Missing user/group." };
+  }
+
+  let data = null;
+
+  // Tenta usar IA primeiro
+  if (isAIEnabled()) {
+    try {
+      console.log("[Finance Module] Using AI parser");
+      data = await extractFinanceDataWithAI(text);
+    } catch (error: any) {
+      console.log(
+        "[Finance Module] AI failed, falling back to manual parser:",
+        error.message
+      );
+      data = extractFinanceData(text);
+    }
+  } else {
+    // Usa parser manual se IA estiver desabilitada
+    console.log("[Finance Module] AI disabled, using manual parser");
+    data = extractFinanceData(text);
+  }
+
+  if (!data) {
     return {
       success: false,
       error: "Nenhuma intenção de finanças reconhecida.",
     };
-
-  if (!user_id || !group_id) {
-    return { success: false, error: "Missing user/group." };
   }
 
   if (data.__action__ === "view") {

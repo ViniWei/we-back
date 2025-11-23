@@ -109,11 +109,15 @@ const getById = async (
 };
 
 const getUpcoming = async (groupId?: number): Promise<ITripWithPhotos[]> => {
-  return await getTripsWithPhotos("WHERE t.end_date >= CURDATE()", groupId);
+  return await getTripsWithPhotos("WHERE ts.status = 'pending'", groupId);
 };
 
 const getPast = async (groupId?: number): Promise<ITripWithPhotos[]> => {
-  return await getTripsWithPhotos("WHERE t.end_date < CURDATE()", groupId);
+  return await getTripsWithPhotos("WHERE ts.status = 'done'", groupId);
+};
+
+const getCanceled = async (groupId?: number): Promise<ITripWithPhotos[]> => {
+  return await getTripsWithPhotos("WHERE ts.status = 'canceled'", groupId);
 };
 
 const create = async (data: Partial<ITrips>): Promise<ITrips> => {
@@ -203,6 +207,7 @@ export default {
   getById,
   getUpcoming,
   getPast,
+  getCanceled,
   create,
   update,
   deleteById,

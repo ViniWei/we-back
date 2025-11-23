@@ -37,10 +37,18 @@ export async function createDate(
       return res.status(400).json({ error: "Date and statusId are required" });
     }
 
-    // Criar o date
+    // Criar o date com conversão correta de data
+    let dateValue: Date;
+    if (typeof date === "string" && date.includes("-")) {
+      const dateOnly = date.split("T")[0]; // "2025-11-26"
+      dateValue = new Date(`${dateOnly}T00:00:00.000`);
+    } else {
+      dateValue = new Date(date);
+    }
+
     const newDate = await datesRepository.create({
       group_id: groupId,
-      date: new Date(date),
+      date: dateValue,
       location,
       description,
       status_id: statusId,
@@ -116,6 +124,10 @@ export async function deleteDate(
       return res.status(404).json({ error: "Date not found" });
     }
 
+    // Deletar todas as atividades vinculadas a esse encontro
+    await activitiesRepository.deleteAllByDateId(Number(id));
+
+    // Deletar o encontro
     await datesRepository.deleteById(Number(id));
     res.status(204).send();
   } catch (error) {

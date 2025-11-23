@@ -111,6 +111,14 @@ const deleteAllByGroupId = async (groupId: number) => {
   await db.delete(activities).where(eq(activities.groupId, groupId));
 };
 
+const deleteAllByTripId = async (tripId: number) => {
+  await db.delete(activities).where(eq(activities.tripId, tripId));
+};
+
+const deleteAllByDateId = async (dateId: number) => {
+  await db.delete(activities).where(eq(activities.dateId, dateId));
+};
+
 export default {
   getAll,
   getAllByGroupId,
@@ -121,4 +129,6 @@ export default {
   update,
   deleteById,
   deleteAllByGroupId,
+  deleteAllByTripId,
+  deleteAllByDateId,
 };
