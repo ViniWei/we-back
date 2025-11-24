@@ -1,6 +1,5 @@
 import { Request, Response } from "express";
 
-// Tipos JWT
 export interface IJWTUser {
   id: number;
   email: string;

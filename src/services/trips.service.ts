@@ -34,9 +34,8 @@ function validateTripStatus(status: string): boolean {
 }
 
 function validateBudget(estimated?: string): boolean {
-  if (!estimated) return true; // Budget is optional
+  if (!estimated) return true;
 
-  // Remove currency symbols and check if it's a valid number
   const cleanBudget = estimated.replace(/[R$\s.,]/g, "");
   const budget = parseFloat(cleanBudget);
 
@@ -125,10 +124,8 @@ function validateTripUpdateRequest(request: ITripUpdateRequest): {
 function formatTripResponse(trip: ITripWithPhotos): ITripWithPhotos {
   return {
     ...trip,
-    // Ensure dates are properly formatted
     start_date: new Date(trip.start_date),
     end_date: new Date(trip.end_date),
-    // Ensure photos array is always present
     photos: trip.photos || [],
   };
 }
@@ -157,12 +154,12 @@ function formatBudgetDisplay(budget?: number): string {
 
 function getTripStatusColor(status: string): string {
   const statusColors: Record<string, string> = {
-    pending: "#f1c40f", // yellow
-    canceled: "#e74c3c", // red
-    done: "#2ecc71", // green
+    pending: "#f1c40f",
+    canceled: "#e74c3c",
+    done: "#2ecc71",
   };
 
-  return statusColors[status] || "#6b7280"; // gray as default
+  return statusColors[status] || "#6b7280";
 }
 
 export default {

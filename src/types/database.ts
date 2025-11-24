@@ -54,7 +54,6 @@ export interface ITrips {
   modified_at?: Date;
 }
 
-// Interface for the current trips implementation
 export interface ITrip {
   id?: number;
   city: string;
@@ -118,6 +117,7 @@ export interface IDates {
   date: Date;
   location?: string;
   description?: string;
+  photo?: string;
   status_id: number;
   created_by?: number;
   modified_by?: number;

@@ -37,11 +37,9 @@ export async function createDate(
       return res.status(400).json({ error: "Date and statusId are required" });
     }
 
-    // Criar o date com conversão correta de data
     let dateValue: Date;
-    if (typeof date === "string" && date.includes("-")) {
-      const dateOnly = date.split("T")[0]; // "2025-11-26"
-      dateValue = new Date(`${dateOnly}T00:00:00.000`);
+    if (typeof date === "string") {
+      dateValue = new Date(date.replace(" ", "T") + ".000");
     } else {
       dateValue = new Date(date);
     }
@@ -55,13 +53,12 @@ export async function createDate(
       created_by: userId,
     });
 
-    // Criar o registro em activities apontando para o date, com event_name = location
     await activitiesRepository.create({
       group_id: groupId,
       date_id: newDate.id,
       trip_id: undefined,
-      event_name: location, // Nome do local do encontro
-      date: new Date(date),
+      event_name: location,
+      date: dateValue,
       created_by: userId,
     });
 
@@ -85,22 +82,29 @@ export async function updateDate(
       return res.status(404).json({ error: "Date not found" });
     }
 
-    // Atualizar o date
+    let dateValue: Date | undefined = undefined;
+    if (date) {
+      if (typeof date === "string") {
+        dateValue = new Date(date.replace(" ", "T") + ".000");
+      } else {
+        dateValue = new Date(date);
+      }
+    }
+
     await datesRepository.update(Number(id), {
-      date: date ? new Date(date) : undefined,
+      date: dateValue,
       location,
       description,
       status_id: statusId,
       modified_by: userId,
     });
 
-    // Atualizar o activity correspondente
     const activities = await activitiesRepository.getAllByDateId(Number(id));
     if (activities.length > 0) {
       const activity = activities[0];
       await activitiesRepository.update(activity.id!, {
-        event_name: location, // Atualizar com o novo location
-        date: date ? new Date(date) : undefined,
+        event_name: location,
+        date: dateValue,
         modified_by: userId,
       });
     }
@@ -124,10 +128,8 @@ export async function deleteDate(
       return res.status(404).json({ error: "Date not found" });
     }
 
-    // Deletar todas as atividades vinculadas a esse encontro
     await activitiesRepository.deleteAllByDateId(Number(id));
 
-    // Deletar o encontro
     await datesRepository.deleteById(Number(id));
     res.status(204).send();
   } catch (error) {

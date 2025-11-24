@@ -17,7 +17,6 @@ export interface IFinance {
   user_name?: string;
 }
 
-// Helper para converter de camelCase (Drizzle) para snake_case (tipos legados)
 const toSnakeCase = (data: any): IFinance => ({
   id: data.id,
   group_id: data.groupId,
@@ -60,7 +59,6 @@ const getAllByGroupId = async (groupId: number): Promise<IFinance[]> => {
   return result.map(toSnakeCase);
 };
 
-// Alias para compatibilidade
 const getByGroupId = getAllByGroupId;
 
 const getById = async (id: number): Promise<IFinance | undefined> => {
@@ -71,7 +69,6 @@ const getById = async (id: number): Promise<IFinance | undefined> => {
 const create = async (data: Partial<IFinance>): Promise<IFinance> => {
   const now = new Date();
 
-  // Use transaction_date if provided, otherwise use current date
   const transactionDate = data.transaction_date
     ? typeof data.transaction_date === "string"
       ? new Date(data.transaction_date)
@@ -123,7 +120,7 @@ const deleteAllByGroupId = async (groupId: number): Promise<void> => {
 export default {
   getAll,
   getAllByGroupId,
-  getByGroupId, // Alias
+  getByGroupId,
   getById,
   create,
   update,

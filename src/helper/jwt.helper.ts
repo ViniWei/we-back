@@ -21,9 +21,6 @@ export interface TokenPair {
   refreshToken: string;
 }
 
-/**
- * Gera um par de tokens (access e refresh)
- */
 export const generateTokens = (payload: JWTPayload): TokenPair => {
   const accessToken = jwt.sign(payload, ACCESS_TOKEN_SECRET, {
     expiresIn: ACCESS_TOKEN_EXPIRY,
@@ -36,9 +33,6 @@ export const generateTokens = (payload: JWTPayload): TokenPair => {
   return { accessToken, refreshToken };
 };
 
-/**
- * Verifica e decodifica um access token
- */
 export const verifyAccessToken = (token: string): JWTPayload => {
   try {
     const decoded = jwt.verify(token, ACCESS_TOKEN_SECRET) as JWTPayload;
@@ -48,9 +42,6 @@ export const verifyAccessToken = (token: string): JWTPayload => {
   }
 };
 
-/**
- * Verifica e decodifica um refresh token
- */
 export const verifyRefreshToken = (token: string): JWTPayload => {
   try {
     const decoded = jwt.verify(token, REFRESH_TOKEN_SECRET) as JWTPayload;
@@ -60,13 +51,9 @@ export const verifyRefreshToken = (token: string): JWTPayload => {
   }
 };
 
-/**
- * Gera um novo access token usando um refresh token válido
- */
 export const refreshAccessToken = (refreshToken: string): string => {
   const payload = verifyRefreshToken(refreshToken);
 
-  // Gera apenas um novo access token, mantendo o refresh token
   const newAccessToken = jwt.sign(
     {
       userId: payload.userId,

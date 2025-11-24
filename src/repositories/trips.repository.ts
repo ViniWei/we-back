@@ -4,7 +4,6 @@ import { trips, tripPhotos } from "../db/schema";
 import { ITrips, ITripWithPhotos, ITripPhoto } from "../types/database";
 import { RowDataPacket, ResultSetHeader } from "mysql2";
 
-// Helper para converter de camelCase (Drizzle) para snake_case (tipos legados)
 const toSnakeCase = (data: any): ITrips => ({
   id: data.id,
   group_id: data.groupId,
@@ -21,12 +20,9 @@ const toSnakeCase = (data: any): ITrips => ({
 });
 
 const translateStatus = (status: string): string => {
-  // O banco retorna em inglês (pending, canceled, done)
-  // Não precisa traduzir, apenas retornar o valor do banco
   return status;
 };
 
-// Buscar trips com fotos usando query SQL customizada para manter compatibilidade
 const getTripsWithPhotos = async (
   whereClause = "",
   groupId?: number

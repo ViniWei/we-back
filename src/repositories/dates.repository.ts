@@ -16,7 +16,6 @@ export interface IDate {
   modified_at?: Date;
 }
 
-// Converter de camelCase (Drizzle) para snake_case (IDates)
 const toSnakeCase = (data: any): IDates => ({
   id: data.id,
   group_id: data.groupId,

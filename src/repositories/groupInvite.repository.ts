@@ -42,7 +42,6 @@ const getByCreatorId = async (creatorId: number) => {
   return result[0];
 };
 
-// Alias para compatibilidade
 const getByCreatorUserId = getByCreatorId;
 
 const create = async (data: Partial<IGroupInvite>) => {
@@ -69,7 +68,7 @@ const update = async (id: number, data: Partial<IGroupInvite>) => {
 const deactivateByCreatorUserId = async (creatorId: number) => {
   await db
     .update(groupInvites)
-    .set({ statusId: 3 }) // 3 = expired
+    .set({ statusId: 3 })
     .where(eq(groupInvites.creatorUserId, creatorId));
 };
 

@@ -16,7 +16,6 @@ export interface IActivity {
   modified_at?: Date;
 }
 
-// Converter de camelCase (Drizzle) para snake_case (IActivities)
 const toSnakeCase = (data: any): IActivities => ({
   id: data.id,
   group_id: data.groupId,

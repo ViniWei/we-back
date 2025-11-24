@@ -41,10 +41,8 @@ function parseTripFromRequest(
   };
 
   if (startDate) {
-    // Criar data no formato local sem conversão de timezone
-    // Se vier como "2025-11-26", criar como "2025-11-26 00:00:00"
     if (typeof startDate === "string" && startDate.includes("-")) {
-      const dateOnly = startDate.split("T")[0]; // "2025-11-26"
+      const dateOnly = startDate.split("T")[0];
       trip.start_date = new Date(`${dateOnly}T00:00:00.000`);
     } else {
       trip.start_date = new Date(startDate);
@@ -52,16 +50,14 @@ function parseTripFromRequest(
   }
 
   if (endDate) {
-    // Criar data no formato local sem conversão de timezone
     if (typeof endDate === "string" && endDate.includes("-")) {
-      const dateOnly = endDate.split("T")[0]; // "2025-12-12"
+      const dateOnly = endDate.split("T")[0];
       trip.end_date = new Date(`${dateOnly}T00:00:00.000`);
     } else {
       trip.end_date = new Date(endDate);
     }
   }
 
-  // Map status to status_id (pending=1, canceled=2, done=3)
   const statusMap: Record<string, number> = {
     pending: 1,
     canceled: 2,
@@ -157,19 +153,17 @@ export async function createTrip(
         );
     }
 
-    // Adicionar groupId e created_by
     newTripData.group_id = groupId;
     newTripData.created_by = (req as any).user?.id;
 
     const newTrip = await tripsRepository.create(newTripData);
 
-    // Criar o registro em activities apontando para a trip, com event_name = destination
     await activitiesRepository.create({
       group_id: groupId,
       trip_id: newTrip.id,
       date_id: undefined,
-      event_name: newTripData.destination || "", // Nome do destino da viagem
-      date: newTripData.start_date!, // Usa a data de início da trip
+      event_name: newTripData.destination || "",
+      date: newTripData.start_date!,
       created_by: (req as any).user?.id,
     });
 
@@ -382,12 +376,11 @@ export async function updateTrip(
         );
     }
 
-    // Atualizar o activity correspondente
     const activities = await activitiesRepository.getAllByTripId(Number(id));
     if (activities.length > 0 && tripData.destination) {
       const activity = activities[0];
       await activitiesRepository.update(activity.id!, {
-        event_name: tripData.destination, // Atualizar com o novo destino
+        event_name: tripData.destination,
         date: tripData.start_date,
         modified_by: (req as any).user?.id,
       });
@@ -414,10 +407,8 @@ export async function deleteTrip(
 ): Promise<Response | void> {
   const { id } = req.params;
   try {
-    // Deletar todas as atividades vinculadas a essa viagem
     await activitiesRepository.deleteAllByTripId(Number(id));
 
-    // Deletar a viagem
     const result = await tripsRepository.remove(Number(id));
     if (!result) {
       return res

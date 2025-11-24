@@ -43,7 +43,6 @@ const update = async (
   value: any,
   userData: UpdateUser
 ): Promise<void> => {
-  // Mapeamento de campos TypeScript para colunas do banco
   const fieldMap: Record<string, any> = {
     id: users.id,
     email: users.email,
@@ -56,7 +55,6 @@ const update = async (
     throw new Error(`Field ${String(field)} not found in users table`);
   }
 
-  // Coerce value types for numeric fields to avoid mismatches (e.g. '123' vs 123)
   let whereValue = value;
   if (
     (dbField === users.id || dbField === users.groupId) &&

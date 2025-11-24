@@ -66,7 +66,6 @@ const deleteAllByMovieId = async (movieId: number) => {
   await db.delete(movieListItems).where(eq(movieListItems.movieId, movieId));
 };
 
-// Método adicional para deletar por listId e movieId
 const deleteByListAndMovieId = async (listId: number, movieId: number) => {
   await db
     .delete(movieListItems)
@@ -78,20 +77,19 @@ const deleteByListAndMovieId = async (listId: number, movieId: number) => {
     );
 };
 
-// Aliases para compatibilidade
 const getByListId = getAllByListId;
 const deleteByListId = deleteAllByListId;
 
 export default {
   getAll,
   getAllByListId,
-  getByListId, // Alias
+  getByListId,
   getById,
   getByMovieAndList,
   create,
   deleteById,
   deleteAllByListId,
-  deleteByListId, // Alias
+  deleteByListId,
   deleteAllByMovieId,
   deleteByListAndMovieId,
 };

@@ -100,8 +100,6 @@ function extractAmount(text: string): number | null {
   return isNaN(value) ? null : parseFloat(value.toFixed(2));
 }
 
-// ============ FUNÇÕES DE CONVERSÃO PARA IA ============
-
 function convertDateString(dateStr: string | null): Date {
   const now = new Date();
 
@@ -121,7 +119,6 @@ function convertDateString(dateStr: string | null): Date {
     return d;
   }
 
-  // Pattern: in_N_days
   const inDaysMatch = dateStr.match(/^in_(\d+)_days?$/);
   if (inDaysMatch) {
     const days = parseInt(inDaysMatch[1]);
@@ -130,7 +127,6 @@ function convertDateString(dateStr: string | null): Date {
     return d;
   }
 
-  // ISO date: YYYY-MM-DD
   if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
     const parsed = new Date(dateStr);
     if (!isNaN(parsed.getTime())) {
@@ -138,7 +134,6 @@ function convertDateString(dateStr: string | null): Date {
     }
   }
 
-  // Default: hoje
   return new Date(now.getFullYear(), now.getMonth(), now.getDate());
 }
 
@@ -165,13 +160,10 @@ function normalizeCategory(cat: string | null): string {
 }
 
 function toLocalISOString(date: Date): string {
-  // Offset para timezone de Brasília (UTC-3)
   const offsetMin = -180;
   const ms = date.getTime() + offsetMin * 60000;
   return new Date(ms).toISOString();
 }
-
-// ============ EXTRAÇÃO COM IA ============
 
 async function extractFinanceDataWithAI(text: string): Promise<any | null> {
   try {
@@ -179,22 +171,17 @@ async function extractFinanceDataWithAI(text: string): Promise<any | null> {
 
     console.log("[AI Finance] Parsed intent:", aiIntent);
 
-    // Visualização
     if (aiIntent.action === "view") {
       return { __action__: "view" };
     }
 
-    // Criação de despesa
     if (aiIntent.action === "create") {
-      // Validações
       if (!aiIntent.amount || aiIntent.amount <= 0) {
         console.warn("[AI Finance] Invalid amount:", aiIntent.amount);
       }
 
-      // Converter data
       const date = convertDateString(aiIntent.date);
 
-      // Normalizar categoria
       const category = normalizeCategory(aiIntent.category);
 
       return {
@@ -208,11 +195,9 @@ async function extractFinanceDataWithAI(text: string): Promise<any | null> {
     return null;
   } catch (error: any) {
     console.error("[AI Finance] Error:", error.message);
-    throw error; // Propaga erro para usar fallback
+    throw error;
   }
 }
-
-// ============ EXTRAÇÃO MANUAL (FALLBACK) ============
 
 function extractFinanceData(text: string): any | null {
   const { module, action } = intent.detect(text);
@@ -220,10 +205,8 @@ function extractFinanceData(text: string): any | null {
 
   const t = normalize(text);
 
-  // Visualização de despesas
   if (action === "view") return { __action__: "view" };
 
-  // Criação de despesa
   if (action === "create") {
     const amount = extractAmount(t) || 0;
 
@@ -369,7 +352,6 @@ export async function execute(
 
   let data = null;
 
-  // Tenta usar IA primeiro
   if (isAIEnabled()) {
     try {
       console.log("[Finance Module] Using AI parser");
@@ -382,7 +364,6 @@ export async function execute(
       data = extractFinanceData(text);
     }
   } else {
-    // Usa parser manual se IA estiver desabilitada
     console.log("[Finance Module] AI disabled, using manual parser");
     data = extractFinanceData(text);
   }

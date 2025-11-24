@@ -53,13 +53,12 @@ const deleteAllByGroupId = async (groupId: number) => {
   await db.delete(movieLists).where(eq(movieLists.groupId, groupId));
 };
 
-// Aliases para compatibilidade
 const getByGroupId = getAllByGroupId;
 
 export default {
   getAll,
   getAllByGroupId,
-  getByGroupId, // Alias
+  getByGroupId,
   getById,
   create,
   update,

@@ -8,7 +8,6 @@ async function verifyToken(
   next: NextFunction
 ): Promise<void> {
   try {
-    // Pega o token do header Authorization (formato: "Bearer <token>")
     const authHeader = req.headers["authorization"] as string;
 
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
@@ -23,12 +22,11 @@ async function verifyToken(
       return;
     }
 
-    const token = authHeader.substring(7); // Remove "Bearer "
+    const token = authHeader.substring(7);
 
     try {
       const decoded = jwtHelper.verifyAccessToken(token);
 
-      // Armazena os dados do usuário no request para uso nos controllers
       (req as any).user = {
         id: decoded.userId,
         email: decoded.email,

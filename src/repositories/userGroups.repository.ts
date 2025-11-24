@@ -22,7 +22,6 @@ const getById = async (id: number) => {
   return result[0];
 };
 
-// Alias para compatibilidade
 const get = getById;
 
 const create = async (data?: Partial<IUserGroup>) => {

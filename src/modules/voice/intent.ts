@@ -169,7 +169,6 @@ export class Intent {
       .normalize("NFD")
       .replace(/[\u0300-\u036f]/g, "");
 
-    // Prioridade 1: Verificar visualização antes de criação
     if (this.finance_view.some((p) => t.includes(p)))
       return { module: "finances", action: "view" };
     if (this.trip_view.some((p) => t.includes(p)))
@@ -177,11 +176,9 @@ export class Intent {
     if (this.activities_view.some((p) => t.includes(p)))
       return { module: "activities", action: "view" };
 
-    // Prioridade 2: Verificar criação de finanças (com palavras-chave específicas)
     if (this.finance_create.some((p) => t.includes(p)))
       return { module: "finances", action: "create" };
 
-    // Detectar por palavras-chave de finanças (despesa, gasto, valor, reais)
     const hasFinanceKeywords =
       /\b(despesa|gasto|finan[cç]a|valor|reais?|r\$|dinheiro|pagar|pagamento|custo)\b/i.test(
         t
@@ -193,16 +190,13 @@ export class Intent {
       return { module: "finances", action: "create" };
     }
 
-    // Prioridade 3: Verificar criação de viagens
     if (this.trip_create.some((p) => t.includes(p)))
       return { module: "trips", action: "create" };
 
-    // Prioridade 4: Verificar lugares
     for (const pattern of this.places_patterns) {
       if (pattern.test(t)) return { module: "places", action: "search" };
     }
 
-    // Prioridade 5: Atividades (genérico)
     if (this.activities_verbs.some((v) => t.includes(v))) {
       const notTrip = !this.trip_create.some((p) => t.includes(p));
       const notFinance = !this.finance_create.some((p) => t.includes(p));

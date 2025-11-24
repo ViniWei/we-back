@@ -137,6 +137,7 @@ export const dates = mysqlTable("dates", {
   date: datetime("date").notNull(),
   location: varchar("location", { length: 255 }),
   description: text("description"),
+  photo: varchar("photo", { length: 500 }),
   statusId: int("status_id").notNull(),
   createdBy: int("created_by"),
   modifiedBy: int("modified_by"),
