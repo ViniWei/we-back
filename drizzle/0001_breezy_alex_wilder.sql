@@ -1,0 +1,1 @@
+ALTER TABLE `users` ADD `first_login` tinyint DEFAULT 1;
