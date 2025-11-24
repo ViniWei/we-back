@@ -3,6 +3,7 @@ import tripsRepository from "../repositories/trips.repository";
 import activitiesRepository from "../repositories/activities.repository";
 import errorHelper from "../helper/error.helper";
 import tripsService from "../services/trips.service";
+import { s3Service } from "../services/s3.service";
 import {
   ITripCreateRequest,
   ITripUpdateRequest,
@@ -476,10 +477,32 @@ export async function addPhotosToTrip(
     const files = Array.isArray(req.files)
       ? req.files
       : Object.values(req.files).flat();
-    const photoUrls = files.map(
-      (file: any) =>
-        `${req.protocol}://${req.get("host")}/uploads/${file.filename}`
-    );
+
+    // Upload de todas as fotos para o S3
+    const photoUrls: string[] = [];
+    for (const file of files) {
+      try {
+        const url = await s3Service.uploadFromMulter(
+          file as Express.Multer.File,
+          "trips"
+        );
+        photoUrls.push(url);
+      } catch (error) {
+        console.error("Error uploading photo to S3:", error);
+        // Continua com as outras fotos mesmo se uma falhar
+      }
+    }
+
+    if (photoUrls.length === 0) {
+      return res
+        .status(500)
+        .send(
+          errorHelper.buildStandardResponse(
+            "Failed to upload any photos",
+            "error-upload-photos"
+          )
+        );
+    }
 
     await tripsRepository.addPhotos(Number(id), photoUrls);
 
@@ -488,15 +511,93 @@ export async function addPhotosToTrip(
       const formattedTrip = tripsService.formatTripResponse(updatedTrip);
       res.status(200).json(formattedTrip);
     } else {
-      res.status(200).json({ message: "Photos added successfully" });
+      res.status(200).json({
+        message: `${photoUrls.length} photo(s) added successfully`,
+        photos: photoUrls,
+      });
     }
   } catch (error) {
+    console.error("Error adding photos to trip:", error);
     return res
       .status(500)
       .send(
         errorHelper.buildStandardResponse(
           "Error while adding photos",
           "error-db-add-photos",
+          error
+        )
+      );
+  }
+}
+
+export async function deletePhotoFromTrip(
+  req: Request,
+  res: Response
+): Promise<Response | void> {
+  const { id } = req.params;
+  const { photoUrl } = req.body;
+
+  if (!photoUrl) {
+    return res
+      .status(400)
+      .send(
+        errorHelper.buildStandardResponse(
+          "photoUrl is required",
+          "photo-url-required"
+        )
+      );
+  }
+
+  try {
+    const groupId = (req as any).user?.groupId;
+    if (!groupId) {
+      return res
+        .status(400)
+        .send(
+          errorHelper.buildStandardResponse(
+            "User group not found",
+            "user-group-not-found"
+          )
+        );
+    }
+
+    const trip = await tripsRepository.getById(Number(id), groupId);
+    if (!trip) {
+      return res
+        .status(404)
+        .send(
+          errorHelper.buildStandardResponse("Trip not found", "trip-not-found")
+        );
+    }
+
+    // Deletar do S3
+    try {
+      await s3Service.deleteFile(photoUrl);
+    } catch (error) {
+      console.error("Error deleting photo from S3:", error);
+      // Continua mesmo se falhar no S3
+    }
+
+    // Deletar do banco de dados
+    await tripsRepository.deletePhoto(Number(id), photoUrl);
+
+    const updatedTrip = await tripsRepository.getById(Number(id), groupId);
+    if (updatedTrip) {
+      const formattedTrip = tripsService.formatTripResponse(updatedTrip);
+      res.status(200).json(formattedTrip);
+    } else {
+      res.status(200).json({
+        message: "Photo deleted successfully",
+      });
+    }
+  } catch (error) {
+    console.error("Error deleting photo from trip:", error);
+    return res
+      .status(500)
+      .send(
+        errorHelper.buildStandardResponse(
+          "Error while deleting photo",
+          "error-db-delete-photo",
           error
         )
       );

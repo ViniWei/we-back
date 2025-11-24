@@ -26,51 +26,67 @@ Você deve retornar um JSON válido com a seguinte estrutura:
 }
 
 Regras importantes:
-1. **action**: Use "create" para adicionar/registrar/criar despesa, "view" para mostrar/listar/ver despesas
-2. **description**: Extraia apenas o nome da despesa, removendo todas as palavras de comando. Exemplos:
+1. **action**: Use "create" para QUALQUER variação de: adicionar, adicione, adicionou, criar, crie, criou, registrar, registre, registrou, inserir, insere, insira, lançar, lance, lançou, anotar, anote, cadastrar, cadastre, nova, novo, paguei, gastei, comprei, compra, despesa, gasto, finança
+   Use "view" para: mostrar, listar, ver, exibir, consultar despesas/gastos/finanças
+   
+2. **description**: Extraia apenas o nome da despesa, removendo TODAS as palavras de comando. Exemplos:
    - "adicionar despesa com jantar" → "Jantar"
-   - "registrar gasto de uber" → "Uber"
-   - "comprei pizza" → "Pizza"
+   - "cria despesa de uber" → "Uber"
+   - "registre gasto com pizza" → "Pizza"
+   - "paguei mercado" → "Mercado"
+   - "gastei em cinema" → "Cinema"
+   - "comprei remédio" → "Remédio"
    - Se não houver descrição clara, use null
-3. **amount**: Extraia o valor numérico, incluindo:
-   - Números diretos: "150", "35.50", "R$ 200"
+   
+3. **amount**: Extraia o valor numérico de QUALQUER formato:
+   - Com "valor": "no valor de 50", "com o valor de 100", "valor 75" → 50, 100, 75
+   - Com "reais": "50 reais", "cem reais", "150 real" → 50, 100, 150
+   - Com R$: "R$ 200", "R$35.50", "r$ 80" → 200, 35.50, 80
+   - Direto: "150", "35.50", "75" → 150, 35.50, 75
+   - Mil: "2 mil", "1.5 mil", "2k" → 2000, 1500, 2000
    - Por extenso: "cinquenta reais" → 50, "cento e vinte" → 120
-   - Mil: "2 mil" → 2000, "1.5 mil" → 1500
    - Se não houver valor, use null
+   
 4. **category**: Identifique a categoria baseada em palavras-chave:
-   - alimentação: comida, restaurante, jantar, almoço, lanche, mercado, supermercado, pizza, hambúrguer, café, bar, bebida, ifood
-   - transporte: uber, taxi, ônibus, metro, gasolina, combustível, estacionamento, passagem
-   - acomodação: hotel, pousada, airbnb, hospedagem
-   - entretenimento: cinema, show, teatro, parque, festa, jogo, balada
-   - compras: roupa, sapato, shopping, eletrônico, livro
-   - contas: luz, água, telefone, internet, aluguel
-   - saúde: farmácia, remédio, médico, consulta, hospital, dentista, academia
+   - alimentação: comida, restaurante, jantar, almoço, lanche, mercado, supermercado, pizza, hambúrguer, café, bar, bebida, ifood, padaria, açougue, feira
+   - transporte: uber, taxi, ônibus, metro, gasolina, combustível, estacionamento, passagem, pedágio, 99, cabify
+   - acomodação: hotel, pousada, airbnb, hospedagem, motel
+   - entretenimento: cinema, show, teatro, parque, festa, jogo, balada, streaming, netflix, spotify
+   - compras: roupa, sapato, shopping, eletrônico, livro, presente, perfume, maquiagem
+   - contas: luz, água, telefone, internet, aluguel, energia, conta, boleto, iptu
+   - saúde: farmácia, remédio, médico, consulta, hospital, dentista, academia, exame
    - outros: se não se encaixar em nenhuma categoria acima
-   - Se categoria for mencionada explicitamente ("na categoria X"), use-a
-5. **date**: Extraia a data:
-   - "hoje", "data de hoje" → "today"
-   - "amanhã", "amanha" → "tomorrow"
-   - "depois de amanhã" → "day_after_tomorrow"
-   - "daqui a 3 dias" → "in_3_days" (use o padrão in_N_days)
-   - Data específica: "15/01", "15/01/2024" → converta para "2024-01-15"
-   - Dia da semana: "segunda", "próxima terça" → calcule baseado em hoje ser 23/11/2025
+   - Se categoria for mencionada explicitamente, use-a
+   
+5. **date**: Extraia a data aceitando TODAS as variações:
+   - Hoje: "hoje", "data de hoje", "data atual", "data de hoje", "hoje mesmo", "neste dia" → "today"
+   - Amanhã: "amanhã", "amanha", "dia de amanhã" → "tomorrow"
+   - Depois: "depois de amanhã", "daqui 2 dias" → "day_after_tomorrow"
+   - Dias futuros: "daqui a 3 dias", "em 5 dias" → "in_3_days", "in_5_days"
+   - Data específica: "15/01", "15/01/2024", "15 de janeiro" → converta para "YYYY-MM-DD"
    - Se não mencionar data, use "today"
 
-Exemplos de entrada e saída esperada:
+Exemplos de entrada e saída:
 
-Entrada: "adicionar uma despesa com a descrição jantar com o valor 150 reais na categoria alimentação na data de hoje"
+Entrada: "adicionar despesa jantar valor 150 reais hoje"
 Saída: {"action":"create","description":"Jantar","amount":150,"category":"alimentação","date":"today"}
 
-Entrada: "registrar gasto de uber de 35 reais"
+Entrada: "cria despesa uber 35 reais"
 Saída: {"action":"create","description":"Uber","amount":35,"category":"transporte","date":"today"}
 
-Entrada: "comprei pizza por 50 pila"
+Entrada: "registre gasto com pizza no valor de 50 reais data de hoje"
 Saída: {"action":"create","description":"Pizza","amount":50,"category":"alimentação","date":"today"}
 
-Entrada: "adicionar despesa mercado 250 reais amanhã"
+Entrada: "paguei mercado 250 reais amanhã"
 Saída: {"action":"create","description":"Mercado","amount":250,"category":"alimentação","date":"tomorrow"}
 
-Entrada: "mostrar minhas despesas"
+Entrada: "gastei 80 em cinema data atual"
+Saída: {"action":"create","description":"Cinema","amount":80,"category":"entretenimento","date":"today"}
+
+Entrada: "nova finança farmácia com o valor de 45 reais"
+Saída: {"action":"create","description":"Farmácia","amount":45,"category":"saúde","date":"today"}
+
+Entrada: "mostrar despesas"
 Saída: {"action":"view","description":null,"amount":null,"category":null,"date":null}
 
 Entrada: "listar gastos"

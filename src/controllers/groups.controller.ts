@@ -5,6 +5,7 @@ import groupInviteRepository from "../repositories/groupInvite.repository";
 import usersRepository from "../repositories/users.repository";
 import errorHelper from "../helper/error.helper";
 import { IJoinGroupRequest } from "../types/api";
+import { s3Service } from "../services/s3.service";
 
 export const get = async (req: Request, res: Response): Promise<Response> => {
   const { id } = (req as any).user;
@@ -317,7 +318,7 @@ export const updateGroupImage = async (
   res: Response
 ): Promise<Response> => {
   const { groupId } = (req as any).user;
-  const { groupImagePath } = req.body;
+  const file = req.file as Express.Multer.File;
 
   if (!groupId) {
     return res
@@ -330,25 +331,40 @@ export const updateGroupImage = async (
       );
   }
 
-  if (!groupImagePath) {
+  if (!file) {
     return res
       .status(400)
       .send(
         errorHelper.buildStandardResponse(
-          "groupImagePath is required.",
+          "No image file provided.",
           "missing-required-fields"
         )
       );
   }
 
   try {
-    await groupsRepository.update(groupId, { groupImagePath });
+    // Buscar grupo atual para deletar imagem antiga
+    const group = await groupsRepository.getById(groupId);
+    if (group?.groupImagePath && s3Service.isS3Url(group.groupImagePath)) {
+      try {
+        await s3Service.deleteFile(group.groupImagePath);
+      } catch (error) {
+        console.warn("Failed to delete old group image:", error);
+      }
+    }
+
+    // Upload da nova imagem para S3
+    const imageUrl = await s3Service.uploadFromMulter(file, "profile");
+
+    // Atualizar no banco
+    await groupsRepository.update(groupId, { groupImagePath: imageUrl });
 
     return res.json({
       message: "Group image updated successfully.",
-      groupImagePath,
+      groupImagePath: imageUrl,
     });
   } catch (error) {
+    console.error("Error updating group image:", error);
     return res
       .status(500)
       .send(

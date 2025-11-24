@@ -18,7 +18,8 @@ async function handleVoiceCommand(
 
     if (!module) {
       return {
-        message: "Nenhuma intenção reconhecida a partir do comando de voz.",
+        intentNotRecognized: true,
+        message: "Não foi possível identificar a solicitação.",
       };
     }
 

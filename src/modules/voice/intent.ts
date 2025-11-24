@@ -1,14 +1,123 @@
 export class Intent {
   private trip_create: string[] = [
+    // Variações com "adicionar"
     "adicionar viagem",
+    "adicionar uma viagem",
+    "adicionou viagem",
+    "adicionou uma viagem",
+    "adicionaram viagem",
+    "adicione viagem",
+    "adicione uma viagem",
+
+    // Variações com "criar"
     "criar viagem",
+    "criar uma viagem",
+    "cria viagem",
+    "cria uma viagem",
+    "criou viagem",
+    "criou uma viagem",
+    "criaram viagem",
+    "crie viagem",
+    "crie uma viagem",
+
+    // Variações com "marcar"
     "marcar viagem",
+    "marcar uma viagem",
+    "marca viagem",
+    "marca uma viagem",
+    "marcou viagem",
+    "marcou uma viagem",
+    "marcaram viagem",
+    "marque viagem",
+    "marque uma viagem",
+
+    // Variações com "cadastrar"
     "cadastrar viagem",
+    "cadastrar uma viagem",
+    "cadastra viagem",
+    "cadastre viagem",
+    "cadastrou viagem",
+    "cadastraram viagem",
+
+    // Variações com "programar"
     "programar viagem",
+    "programar uma viagem",
+    "programa viagem",
+    "programa uma viagem",
+    "programou viagem",
+    "programaram viagem",
+    "programe viagem",
+    "programe uma viagem",
+
+    // Variações com "planejar"
     "planejar viagem",
+    "planejar uma viagem",
+    "planeja viagem",
+    "planeja uma viagem",
+    "planejou viagem",
+    "planejaram viagem",
+    "planeje viagem",
+    "planeje uma viagem",
+
+    // Variações com "agendar"
     "agendar viagem",
+    "agendar uma viagem",
+    "agenda viagem",
+    "agenda uma viagem",
+    "agendou viagem",
+    "agendaram viagem",
+    "agende viagem",
+    "agende uma viagem",
+
+    // Variações com "registrar"
+    "registrar viagem",
+    "registrar uma viagem",
+    "registra viagem",
+    "registre viagem",
+    "registrou viagem",
+    "registraram viagem",
+
+    // Variações com "inserir"
+    "inserir viagem",
+    "inserir uma viagem",
+    "insere viagem",
+    "insira viagem",
+    "inseriu viagem",
+
+    // Variações com "lançar"
+    "lançar viagem",
+    "lança viagem",
+    "lance viagem",
+    "lançou viagem",
+
+    // Variações com "anotar"
+    "anotar viagem",
+    "anota viagem",
+    "anote viagem",
+    "anotou viagem",
+
+    // Variações diretas/simples
     "nova viagem",
+    "novo passeio",
+    "nova excursão",
     "viagem para",
+    "viagem pra",
+    "viagem pro",
+    "viagem em",
+    "viajar para",
+    "viajar pra",
+    "vamos viajar",
+    "vamos para",
+    "vamos pra",
+    "ir para",
+    "ir pra",
+    "conhecer",
+    "visitar",
+    "passeio em",
+    "passeio para",
+    "excursão para",
+    "roteiro para",
+    "roteiro em",
   ];
 
   private trip_view: string[] = [
@@ -27,24 +136,101 @@ export class Intent {
   ];
 
   private finance_create: string[] = [
+    // Variações com "adicionar"
     "adicionar despesa",
-    "registrar despesa",
-    "nova despesa",
-    "inserir despesa",
+    "adicionar uma despesa",
     "adicionar gasto",
-    "registrar gasto",
+    "adicionar um gasto",
     "adicionar finança",
-    "registrar finança",
-    "nova finança",
-    "criar gasto",
-    "criar despesa",
-    "adicionaram uma despesa",
+    "adicionar uma finança",
+    "adicionar finanças",
+    "adicionou despesa",
     "adicionou uma despesa",
-    "adicione uma despesa",
+    "adicionou gasto",
+    "adicionaram despesa",
     "adicione despesa",
+    "adicione uma despesa",
+    "adicione gasto",
+
+    // Variações com "registrar"
+    "registrar despesa",
+    "registrar uma despesa",
+    "registrar gasto",
+    "registrar um gasto",
+    "registrar finança",
+    "registrar uma finança",
+    "registrar finanças",
     "registre despesa",
+    "registre uma despesa",
+    "registre gasto",
     "registraram despesa",
+    "registrou despesa",
+
+    // Variações com "criar"
+    "criar despesa",
+    "criar uma despesa",
+    "criar gasto",
+    "criar um gasto",
+    "criar finança",
+    "criar uma finança",
+    "criar finanças",
+    "cria despesa",
+    "cria uma despesa",
+    "cria gasto",
+    "criou despesa",
     "criaram despesa",
+    "crie despesa",
+    "crie uma despesa",
+
+    // Variações com "inserir"
+    "inserir despesa",
+    "inserir uma despesa",
+    "inserir gasto",
+    "inserir um gasto",
+    "inserir finança",
+    "insere despesa",
+    "insira despesa",
+    "inseriu despesa",
+
+    // Variações com "lançar"
+    "lançar despesa",
+    "lançar uma despesa",
+    "lançar gasto",
+    "lança despesa",
+    "lance despesa",
+    "lançou despesa",
+
+    // Variações com "nova/novo"
+    "nova despesa",
+    "novo gasto",
+    "nova finança",
+    "novas despesas",
+    "novos gastos",
+
+    // Variações com "anotar"
+    "anotar despesa",
+    "anotar gasto",
+    "anotar finança",
+    "anota despesa",
+    "anote despesa",
+    "anotou despesa",
+
+    // Variações com "cadastrar"
+    "cadastrar despesa",
+    "cadastrar gasto",
+    "cadastrar finança",
+    "cadastre despesa",
+    "cadastrou despesa",
+
+    // Variações diretas/simples
+    "despesa de",
+    "gasto de",
+    "gasto com",
+    "despesa com",
+    "paguei",
+    "gastei",
+    "comprei",
+    "compra de",
   ];
 
   private finance_view: string[] = [
@@ -71,13 +257,135 @@ export class Intent {
   ];
 
   private activities_verbs: string[] = [
+    // Variações com "marcar"
     "marcar",
+    "marca",
+    "marque",
+    "marcou",
+    "marcaram",
+    "marcar encontro",
+    "marcar um encontro",
+    "marca encontro",
+    "marque encontro",
+    "marcou encontro",
+
+    // Variações com "agendar"
     "agendar",
+    "agenda",
+    "agende",
+    "agendou",
+    "agendaram",
+    "agendar encontro",
+    "agendar um encontro",
+    "agenda encontro",
+    "agende encontro",
+    "agendou encontro",
+
+    // Variações com "criar"
     "criar",
+    "cria",
+    "crie",
+    "criou",
+    "criaram",
+    "criar encontro",
+    "criar um encontro",
+    "cria encontro",
+    "crie encontro",
+    "criou encontro",
+
+    // Variações com "adicionar"
     "adicionar",
+    "adiciona",
+    "adicione",
+    "adicionou",
+    "adicionaram",
+    "adicionar encontro",
+    "adicionar um encontro",
+    "adiciona encontro",
+    "adicione encontro",
+    "adicionou encontro",
+
+    // Variações com "planejar"
     "planejar",
+    "planeja",
+    "planeje",
+    "planejou",
+    "planejaram",
+    "planejar encontro",
+    "planejar um encontro",
+    "planeja encontro",
+    "planeje encontro",
+    "planejou encontro",
+
+    // Variações com "programar"
     "programar",
+    "programa",
+    "programe",
+    "programou",
+    "programaram",
+    "programar encontro",
+    "programar um encontro",
+    "programa encontro",
+    "programe encontro",
+    "programou encontro",
+
+    // Variações com "registrar"
     "registrar",
+    "registra",
+    "registre",
+    "registrou",
+    "registraram",
+    "registrar encontro",
+    "registrar um encontro",
+    "registra encontro",
+    "registre encontro",
+    "registrou encontro",
+
+    // Variações com "inserir"
+    "inserir",
+    "insere",
+    "insira",
+    "inseriu",
+    "inserir encontro",
+    "insere encontro",
+    "insira encontro",
+
+    // Variações com "anotar"
+    "anotar",
+    "anota",
+    "anote",
+    "anotou",
+    "anotar encontro",
+    "anota encontro",
+    "anote encontro",
+
+    // Variações diretas/simples
+    "novo encontro",
+    "nova atividade",
+    "novo evento",
+    "novo compromisso",
+    "encontro em",
+    "encontro no",
+    "encontro na",
+    "atividade em",
+    "atividade no",
+    "atividade na",
+    "evento em",
+    "evento no",
+    "evento na",
+    "compromisso em",
+    "compromisso no",
+    "compromisso na",
+    "sair com",
+    "sair para",
+    "vamos sair",
+    "vamos para",
+    "vamos no",
+    "vamos na",
+    "ir no",
+    "ir na",
+    "ir para",
+    "ir ao",
   ];
 
   private activities_view: string[] = [
@@ -163,11 +471,22 @@ export class Intent {
     module: string | null;
     action: string | null;
   } {
+    if (!text || typeof text !== "string") {
+      console.warn("[Intent] Invalid text input:", text);
+      return { module: null, action: null };
+    }
+
     const t = text
       .toLowerCase()
       .trim()
       .normalize("NFD")
       .replace(/[\u0300-\u036f]/g, "");
+
+    console.log("[Intent] Normalized text:", t);
+
+    if (!t || t.length === 0) {
+      return { module: null, action: null };
+    }
 
     if (this.finance_view.some((p) => t.includes(p)))
       return { module: "finances", action: "view" };
@@ -176,19 +495,27 @@ export class Intent {
     if (this.activities_view.some((p) => t.includes(p)))
       return { module: "activities", action: "view" };
 
-    if (this.finance_create.some((p) => t.includes(p)))
-      return { module: "finances", action: "create" };
-
-    const hasFinanceKeywords =
-      /\b(despesa|gasto|finan[cç]a|valor|reais?|r\$|dinheiro|pagar|pagamento|custo)\b/i.test(
+    const hasTripKeywords =
+      /\b(viagem|viagens|viajar|passeio|excursao|excursão|roteiro|visitar|conhecer)\b/i.test(
         t
       );
-    if (
-      hasFinanceKeywords &&
-      this.activities_verbs.some((v) => t.includes(v))
-    ) {
+    const hasFinanceKeywords =
+      /\b(despesa|despesas|gasto|gastos|finan[cç]a|finan[cç]as|valor|reais?|r\$|dinheiro|pagar|pagamento|custo|compra|comprei|paguei|gastei)\b/i.test(
+        t
+      );
+    const hasActivityKeywords =
+      /\b(encontro|encontros|atividade|atividades|evento|eventos|compromisso|compromissos|sair|jantar|almoço|almoco|cinema)\b/i.test(
+        t
+      );
+
+    if (hasTripKeywords && this.trip_create.some((p) => t.includes(p)))
+      return { module: "trips", action: "create" };
+
+    if (hasActivityKeywords && this.activities_verbs.some((v) => t.includes(v)))
+      return { module: "activities", action: "create" };
+
+    if (hasFinanceKeywords && this.finance_create.some((p) => t.includes(p)))
       return { module: "finances", action: "create" };
-    }
 
     if (this.trip_create.some((p) => t.includes(p)))
       return { module: "trips", action: "create" };

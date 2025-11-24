@@ -33,18 +33,26 @@ export const processVoiceCommand = async (
 
     const result = await handleVoiceCommand(text, user_id, group_id);
 
-    if (result.message.includes("Nenhuma")) {
-      return res
-        .status(400)
-        .json(
-          errorHelper.buildStandardResponse(
-            result.response || "Could not execute the requested action.",
-            "voice-command-failed"
-          )
-        );
+    if (result.intentNotRecognized) {
+      return res.status(404).json({
+        success: false,
+        intentNotRecognized: true,
+        message:
+          result.message || "Não foi possível identificar a solicitação.",
+      });
     }
 
-    return res.status(200).json(result);
+    if (result.error) {
+      return res.status(400).json({
+        success: false,
+        error: result.error,
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      ...result,
+    });
   } catch (error: any) {
     console.error("Error processing voice command:", error.message || error);
     return res

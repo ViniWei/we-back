@@ -60,6 +60,9 @@ const CATEGORIES: Record<string, string[]> = {
 };
 
 function normalize(text: string): string {
+  if (!text || typeof text !== "string") {
+    return "";
+  }
   return text
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "")
@@ -70,7 +73,7 @@ function normalize(text: string): string {
 function cleanDescription(text: string): string {
   let t = text
     .replace(
-      /\b(adicionar|registrar|nova|novo|despesa|gasto|compra|pagar|pagamento|gastar|valor|reais?|r\$|de|do|da|no|na|em|com|para|por|ao|aos|às|os|as|o|a)\b/gi,
+      /\b(adicionar|adicione|adiciona|adicionou|adicionaram|registrar|registre|registra|registrou|registraram|criar|cria|crie|criou|criaram|inserir|insere|insira|inseriu|lançar|lança|lance|lançou|anotar|anota|anote|anotou|cadastrar|cadastre|cadastrou|nova|novo|despesa|despesas|gasto|gastos|finança|finanças|compra|comprei|paguei|gastei|pagamento|gastar|valor|reais?|r\$|real|de|do|da|no|na|em|com|para|por|ao|aos|às|os|as|o|a|um|uma|hoje|amanhã|ontem|data|atual)\b/gi,
       ""
     )
     .replace(/\d+[.,]?\d*/g, "")
@@ -92,29 +95,79 @@ function detectCategory(text: string): string {
 }
 
 function extractAmount(text: string): number | null {
-  const t = text.replace(",", ".").replace(/\s+/g, " ");
-  const match = t.match(/(?:r\$ ?)?(\d+(?:[.,]\d{1,2})?)\s*(mil)?/i);
-  if (!match) return null;
-  let value = parseFloat(match[1]);
-  if (match[2]) value *= 1000;
-  return isNaN(value) ? null : parseFloat(value.toFixed(2));
+  const t = text.replace(/,/g, ".").replace(/\s+/g, " ");
+
+  // Tentar variações com "reais", "real", "R$"
+  // Ex: "50 reais", "R$ 100", "no valor de 75 reais", "com o valor de 30 reais"
+  const patterns = [
+    /(?:valor\s+de\s+)?(?:r\$\s*)?(\d+(?:[.,]\d{1,2})?)\s*(?:mil|k)?(?:\s*reais?)?/i,
+    /(?:com\s+o?\s*valor\s+de\s+)?(?:r\$\s*)?(\d+(?:[.,]\d{1,2})?)\s*(?:mil|k)?(?:\s*reais?)?/i,
+    /(?:no\s+valor\s+de\s+)?(?:r\$\s*)?(\d+(?:[.,]\d{1,2})?)\s*(?:mil|k)?(?:\s*reais?)?/i,
+    /(?:de\s+)?(?:r\$\s*)?(\d+(?:[.,]\d{1,2})?)\s*(?:mil|k)?(?:\s*reais?)?/i,
+    /(\d+(?:[.,]\d{1,2})?)\s*(?:mil|k)?(?:\s*reais?)?/i,
+  ];
+
+  for (const pattern of patterns) {
+    const match = t.match(pattern);
+    if (match) {
+      let value = parseFloat(match[1].replace(",", "."));
+
+      // Detectar se é "mil" ou "k"
+      if (/mil|k/i.test(match[0])) {
+        value *= 1000;
+      }
+
+      if (!isNaN(value)) {
+        return parseFloat(value.toFixed(2));
+      }
+    }
+  }
+
+  return null;
 }
 
 function convertDateString(dateStr: string | null): Date {
   const now = new Date();
 
   if (!dateStr || dateStr === "today") {
-    return new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    // Retorna a data atual à meia-noite (hora local)
+    return new Date(
+      now.getFullYear(),
+      now.getMonth(),
+      now.getDate(),
+      0,
+      0,
+      0,
+      0
+    );
   }
 
   if (dateStr === "tomorrow") {
-    const d = new Date(now);
+    // Retorna amanhã à meia-noite (hora local)
+    const d = new Date(
+      now.getFullYear(),
+      now.getMonth(),
+      now.getDate(),
+      0,
+      0,
+      0,
+      0
+    );
     d.setDate(d.getDate() + 1);
     return d;
   }
 
   if (dateStr === "day_after_tomorrow") {
-    const d = new Date(now);
+    // Retorna depois de amanhã à meia-noite (hora local)
+    const d = new Date(
+      now.getFullYear(),
+      now.getMonth(),
+      now.getDate(),
+      0,
+      0,
+      0,
+      0
+    );
     d.setDate(d.getDate() + 2);
     return d;
   }
@@ -122,19 +175,27 @@ function convertDateString(dateStr: string | null): Date {
   const inDaysMatch = dateStr.match(/^in_(\d+)_days?$/);
   if (inDaysMatch) {
     const days = parseInt(inDaysMatch[1]);
-    const d = new Date(now);
+    const d = new Date(
+      now.getFullYear(),
+      now.getMonth(),
+      now.getDate(),
+      0,
+      0,
+      0,
+      0
+    );
     d.setDate(d.getDate() + days);
     return d;
   }
 
   if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
-    const parsed = new Date(dateStr);
-    if (!isNaN(parsed.getTime())) {
-      return parsed;
-    }
+    // Parse data no formato YYYY-MM-DD
+    const [year, month, day] = dateStr.split("-").map(Number);
+    return new Date(year, month - 1, day, 0, 0, 0, 0);
   }
 
-  return new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  // Fallback para hoje
+  return new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0, 0);
 }
 
 function normalizeCategory(cat: string | null): string {
@@ -160,9 +221,13 @@ function normalizeCategory(cat: string | null): string {
 }
 
 function toLocalISOString(date: Date): string {
-  const offsetMin = -180;
-  const ms = date.getTime() + offsetMin * 60000;
-  return new Date(ms).toISOString();
+  // Timezone do Brasil (UTC-3)
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+
+  // Retorna no formato YYYY-MM-DD com horário meio-dia para evitar problemas de timezone
+  return `${year}-${month}-${day}T12:00:00.000Z`;
 }
 
 async function extractFinanceDataWithAI(text: string): Promise<any | null> {
@@ -209,23 +274,39 @@ function extractFinanceData(text: string): any | null {
     const amount = extractAmount(t) || 0;
 
     let description: string | null = null;
-    const descAfter = t.match(
-      /(?:com|na|no|em|de)\s+([a-zçãéêíóúàõ\s]+?)(?=$|\s*(r\$|\d|reais?|mil))/i
-    );
-    if (descAfter) description = cleanDescription(descAfter[1]);
 
-    if (!description) {
-      const descBefore = t.match(
-        /(?:despesa|gasto)\s+(?:com|de|em)\s+([a-zçãéêíóúàõ\s]+?)(?=\s*(no valor|r\$|\d|reais?|mil|$))/i
-      );
-      if (descBefore) description = cleanDescription(descBefore[1]);
+    // Tentar extrair descrição após várias preposições
+    const patterns = [
+      /(?:com|na|no|em|de|para)\s+([a-zçãéêíóúàõ\s]+?)(?=$|\s*(r\$|\d|reais?|mil|valor|hoje|amanha|data))/i,
+      /(?:despesa|gasto|finança|compra|paguei|gastei)\s+(?:com|de|em|para|na|no)?\s*([a-zçãéêíóúàõ\s]+?)(?=\s*(no valor|com o valor|r\$|\d|reais?|mil|hoje|amanha|data|$))/i,
+      /(?:criar|cria|registrar|registre|adicionar|adicione|inserir)\s+(?:despesa|gasto|finança)?\s+(?:com|de|em|para)?\s*([a-zçãéêíóúàõ\s]+?)(?=\s*(no valor|com o valor|valor|r\$|\d|reais?|mil|hoje|amanha|data|$))/i,
+    ];
+
+    for (const pattern of patterns) {
+      const match = t.match(pattern);
+      if (match && match[1]) {
+        description = cleanDescription(match[1]);
+        if (description && description !== "Despesa sem descrição") {
+          break;
+        }
+      }
     }
 
-    if (!description) {
+    // Se ainda não encontrou, tentar pegar última palavra significativa
+    if (!description || description === "Despesa sem descrição") {
       const words = t.split(" ");
-      const last = words[words.length - 1];
-      if (last.length > 2 && isNaN(Number(last))) {
-        description = cleanDescription(last);
+      for (let i = words.length - 1; i >= 0; i--) {
+        const word = words[i];
+        if (
+          word.length > 2 &&
+          isNaN(Number(word)) &&
+          !/^(reais?|real|mil|hoje|amanha|ontem|data|atual|valor|r\$)$/i.test(
+            word
+          )
+        ) {
+          description = cleanDescription(word);
+          break;
+        }
       }
     }
 
@@ -344,6 +425,14 @@ export async function execute(
   user_id: number,
   group_id: number
 ): Promise<any> {
+  // Validação de entrada
+  if (!text || typeof text !== "string" || text.trim().length === 0) {
+    return {
+      success: false,
+      error: "Texto inválido ou vazio.",
+    };
+  }
+
   if (!user_id || !group_id) {
     return { success: false, error: "Missing user/group." };
   }
@@ -354,6 +443,10 @@ export async function execute(
     try {
       data = await extractFinanceDataWithAI(text);
     } catch (error: any) {
+      console.warn(
+        "[Finance] AI failed, falling back to regex:",
+        error.message
+      );
       data = extractFinanceData(text);
     }
   } else {

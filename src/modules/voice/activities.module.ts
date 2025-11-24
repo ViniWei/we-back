@@ -20,6 +20,7 @@ const MONTHS: Record<string, number> = {
 };
 
 function normalize(text: string): string {
+  if (!text || typeof text !== "string") return "";
   return text
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "")
@@ -225,15 +226,56 @@ function extractLocationSpan(t: string): {
 }
 
 function extractEventNameDynamic(original: string, t: string): string {
+  // Expande lista de verbos para todas as variações
   const verbs = [
     "marcar",
+    "marca",
+    "marque",
+    "marcou",
+    "marcaram",
     "agendar",
+    "agenda",
+    "agende",
+    "agendou",
+    "agendaram",
     "criar",
+    "cria",
+    "crie",
+    "criou",
+    "criaram",
     "adicionar",
+    "adiciona",
+    "adicione",
+    "adicionou",
+    "adicionaram",
     "planejar",
+    "planeja",
+    "planeje",
+    "planejou",
+    "planejaram",
     "programar",
+    "programa",
+    "programe",
+    "programou",
+    "programaram",
     "registrar",
+    "registra",
+    "registre",
+    "registrou",
+    "registraram",
+    "inserir",
+    "insere",
+    "insira",
+    "inseriu",
+    "anotar",
+    "anota",
+    "anote",
+    "anotou",
+    "sair",
+    "ir",
+    "vamos",
   ];
+
   let event = "";
   const verb = verbs.find((v) => t.includes(v));
   if (verb) {
@@ -244,14 +286,23 @@ function extractEventNameDynamic(original: string, t: string): string {
     const match = original.match(regex);
     if (match && match[1]) event = match[1];
   }
+
+  // Remove palavras de localização, data e hora
   event = event
     .replace(/\b(no|na|em|para|pra|ao|a)\b.*$/i, "")
+    .replace(/\b(hoje|amanhã|depois|\d{1,2}[:h]\d{0,2})\b.*$/i, "")
     .replace(/\s+/g, " ")
     .trim();
+
   return event ? event.charAt(0).toUpperCase() + event.slice(1) : "Atividade";
 }
 
 function extractActivityData(text: string): any | null {
+  if (!text || typeof text !== "string") {
+    console.warn("[Activities] Invalid text input:", text);
+    return null;
+  }
+
   const { module, action } = intent.detect(text);
   if (module !== "activities") return null;
 
@@ -284,9 +335,11 @@ function extractActivityData(text: string): any | null {
 }
 
 function toLocalISOString(date: Date): string {
-  const offMin = -180;
-  const ms = date.getTime() + offMin * 60000;
-  return new Date(ms).toISOString();
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+
+  return `${year}-${month}-${day}T12:00:00.000Z`;
 }
 
 async function fetchActivities(groupId: number, mode: "all" | "upcoming") {
@@ -345,6 +398,12 @@ export async function execute(
   user_id: number,
   group_id: number
 ): Promise<any> {
+  // Validação de entrada
+  if (!text || typeof text !== "string" || text.trim().length === 0) {
+    console.warn("[Activities] Empty or invalid text input");
+    return { error: "Texto inválido ou vazio." };
+  }
+
   const data = extractActivityData(text);
   if (!data)
     return {
