@@ -3,7 +3,7 @@ import { Request, Response } from "express";
 export interface IJWTUser {
   id: number;
   email: string;
-  group_id?: number;
+  groupId?: number;
 }
 
 declare module "express-serve-static-core" {

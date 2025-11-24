@@ -6,6 +6,7 @@ import usersRepository from "../repositories/users.repository";
 import mailerService from "../services/mailer.service";
 import usersService from "../services/users.service";
 import errorHelper from "../helper/error.helper";
+import passwordHelper from "../helper/password.helper";
 import {
   ICreateUserRequest,
   IVerifyEmailRequest,
@@ -80,6 +81,18 @@ export const create = async (
         errorHelper.buildStandardResponse(
           "Invalid email format.",
           "email-invalid-format"
+        )
+      );
+  }
+
+  const passwordValidation = passwordHelper.validatePassword(password);
+  if (!passwordValidation.isValid) {
+    return res
+      .status(400)
+      .send(
+        errorHelper.buildStandardResponse(
+          passwordValidation.message!,
+          passwordValidation.code!
         )
       );
   }
@@ -330,13 +343,14 @@ export const changePassword = async (
       );
   }
 
-  if (newPassword.length < 6) {
+  const passwordValidation = passwordHelper.validatePassword(newPassword);
+  if (!passwordValidation.isValid) {
     return res
       .status(400)
       .send(
         errorHelper.buildStandardResponse(
-          "New password must be at least 6 characters long.",
-          "password-too-short"
+          passwordValidation.message!,
+          passwordValidation.code!
         )
       );
   }
@@ -639,13 +653,14 @@ export const resetPassword = async (
       );
   }
 
-  if (newPassword.length < 6) {
+  const passwordValidation = passwordHelper.validatePassword(newPassword);
+  if (!passwordValidation.isValid) {
     return res
       .status(400)
       .send(
         errorHelper.buildStandardResponse(
-          "New password must be at least 6 characters long.",
-          "password-too-short"
+          passwordValidation.message!,
+          passwordValidation.code!
         )
       );
   }
@@ -693,6 +708,55 @@ export const resetPassword = async (
         errorHelper.buildStandardResponse(
           "Error while resetting password.",
           "error-reset-password",
+          error
+        )
+      );
+  }
+};
+
+export const checkDailyAccess = async (
+  req: Request,
+  res: Response
+): Promise<Response> => {
+  const { id: userId } = (req as any).user;
+
+  try {
+    const user = await usersRepository.getById(userId);
+    if (!user) {
+      return res
+        .status(404)
+        .send(
+          errorHelper.buildStandardResponse("User not found.", "user-not-found")
+        );
+    }
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const todayString = today.toISOString().split("T")[0];
+
+    const lastAccess = user.lastDayAccess
+      ? new Date(user.lastDayAccess).toISOString().split("T")[0]
+      : null;
+
+    const isFirstAccessToday = lastAccess !== todayString;
+
+    if (isFirstAccessToday) {
+      await usersRepository.update("id", userId, {
+        lastDayAccess: today,
+      } as any);
+    }
+
+    return res.json({
+      isFirstAccessToday,
+      lastAccess: lastAccess,
+    });
+  } catch (error) {
+    return res
+      .status(500)
+      .send(
+        errorHelper.buildStandardResponse(
+          "Error while checking daily access.",
+          "error-check-daily-access",
           error
         )
       );

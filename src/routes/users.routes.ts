@@ -14,11 +14,13 @@ import {
   requestResetPassword,
   resetPassword,
   googleAuth,
+  checkDailyAccess,
 } from "../controllers/users.controller";
 
 const router = Router();
 
 router.get("/", authMiddleware.verifyToken, get);
+router.get("/check-daily-access", authMiddleware.verifyToken, checkDailyAccess);
 router.post("/login", login);
 router.post("/logout", authMiddleware.verifyToken, logout);
 router.post("/", create);

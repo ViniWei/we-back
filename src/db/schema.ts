@@ -78,6 +78,7 @@ export const users = mysqlTable("users", {
   groupInviteId: int("group_invite_id"),
   groupId: int("group_id"),
   languageId: int("language_id"),
+  lastDayAccess: date("last_day_access"),
 });
 
 export const groupInvites = mysqlTable("group_invite", {
@@ -177,9 +178,8 @@ export const moodCalendar = mysqlTable("mood_calendar", {
   id: int("id").primaryKey().autoincrement(),
   userId: int("user_id"),
   moodId: int("mood_id"),
-  note: text("note"),
-  share: tinyint("share").default(0),
-  registrationDate: datetime("registration_date"),
+  createdAt: timestamp("created_at").defaultNow(),
+  modifiedAt: timestamp("modified_at").defaultNow(),
 });
 
 export const movies = mysqlTable("movies", {

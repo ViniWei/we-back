@@ -11,6 +11,7 @@ export interface IUser {
   groupInviteId?: number;
   groupId?: number;
   languageId?: number;
+  lastDayAccess?: Date;
 }
 
 export interface IUserGroups {

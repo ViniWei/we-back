@@ -169,8 +169,6 @@ async function extractFinanceDataWithAI(text: string): Promise<any | null> {
   try {
     const aiIntent = await parseFinanceIntent(text);
 
-    console.log("[AI Finance] Parsed intent:", aiIntent);
-
     if (aiIntent.action === "view") {
       return { __action__: "view" };
     }
@@ -354,17 +352,11 @@ export async function execute(
 
   if (isAIEnabled()) {
     try {
-      console.log("[Finance Module] Using AI parser");
       data = await extractFinanceDataWithAI(text);
     } catch (error: any) {
-      console.log(
-        "[Finance Module] AI failed, falling back to manual parser:",
-        error.message
-      );
       data = extractFinanceData(text);
     }
   } else {
-    console.log("[Finance Module] AI disabled, using manual parser");
     data = extractFinanceData(text);
   }
 

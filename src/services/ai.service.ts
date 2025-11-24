@@ -81,15 +81,11 @@ IMPORTANTE: Sempre retorne JSON válido, nunca retorne texto explicativo ou mark
 export async function parseFinanceIntent(
   userText: string
 ): Promise<FinanceIntent> {
-  // Se AI não está habilitada, retorna null para usar fallback
   if (!AI_ENABLED || !OPENAI_API_KEY) {
-    console.log("[AI] Voice AI disabled, using fallback parser");
     throw new Error("AI disabled");
   }
 
   try {
-    console.log(`[AI] Parsing finance intent: "${userText}"`);
-
     const response = await axios.post(
       "https://api.openai.com/v1/chat/completions",
       {
@@ -107,14 +103,12 @@ export async function parseFinanceIntent(
           Authorization: `Bearer ${OPENAI_API_KEY}`,
           "Content-Type": "application/json",
         },
-        timeout: 10000, // 10s timeout
+        timeout: 10000,
       }
     );
 
     const content = response.data.choices[0].message.content;
     const parsed: FinanceIntent = JSON.parse(content);
-
-    console.log("[AI] Parsed intent:", JSON.stringify(parsed));
 
     return parsed;
   } catch (error: any) {
@@ -125,4 +119,181 @@ export async function parseFinanceIntent(
 
 export function isAIEnabled(): boolean {
   return AI_ENABLED && !!OPENAI_API_KEY;
+}
+
+interface RecommendationContext {
+  movies?: string[];
+  destinations?: string[];
+  dateLocations?: string[];
+  expenses?: Array<{ category: string; description: string; amount: number }>;
+}
+
+export async function generateRecommendation(
+  type: "movies" | "travel" | "date" | "finance",
+  context: RecommendationContext
+): Promise<string> {
+  if (!AI_ENABLED || !OPENAI_API_KEY) {
+    throw new Error("AI disabled");
+  }
+
+  let systemPrompt = "";
+  let userPrompt = "";
+
+  switch (type) {
+    case "movies":
+      systemPrompt = `Você é um especialista em cinema que recomenda filmes para casais.
+      
+      IMPORTANTE: 
+      - NÃO inclua mensagens introdutórias ou de conclusão
+      - Vá direto para a lista numerada de filmes
+      - Use Markdown corretamente: **Título do Filme** para negrito
+      - Cada filme deve ter: número, título em negrito, ano, breve sinopse e "Por que assistir:" em negrito
+      - Não use emojis na resposta
+      
+      Formato da resposta:
+      1. **Nome do Filme** (Ano)
+         Breve descrição do filme em 2-3 linhas.
+         **Por que assistir:** Razão específica para o casal.`;
+
+      userPrompt =
+        context.movies && context.movies.length > 0
+          ? `Liste 5 filmes para um casal assistir juntos. Eles JÁ ASSISTIRAM: ${context.movies.join(
+              ", "
+            )}. NÃO sugira esses filmes. Vá direto para a lista numerada.`
+          : `Liste 5 filmes românticos, de comédia romântica ou dramas emocionantes para um casal. Vá direto para a lista numerada.`;
+      break;
+
+    case "travel":
+      systemPrompt = `Você é um especialista em viagens que recomenda destinos românticos para casais.
+      
+      IMPORTANTE:
+      - NÃO inclua mensagens introdutórias ou de conclusão
+      - Vá direto para a lista numerada de destinos
+      - Use Markdown: **Nome do Destino** para negrito
+      - Cada destino: número, nome em negrito, atrativos, melhor época, orçamento e "Por que é especial:" em negrito
+      - Não use emojis na resposta
+      
+      Formato da resposta:
+      1. **Nome do Destino**
+         Principais atrativos descritos brevemente.
+         **Melhor época:** Período ideal
+         **Orçamento:** Baixo/Médio/Alto
+         **Por que é especial:** Razão específica para casais.`;
+
+      userPrompt =
+        context.destinations && context.destinations.length > 0
+          ? `Liste 5 destinos para um casal viajar. Eles JÁ VISITARAM: ${context.destinations.join(
+              ", "
+            )}. NÃO sugira esses lugares. Vá direto para a lista numerada.`
+          : `Liste 5 destinos românticos para um casal viajar, variando perfis e orçamentos. Vá direto para a lista numerada.`;
+      break;
+
+    case "date":
+      systemPrompt = `Você é um especialista em relacionamentos que sugere lugares para encontros românticos.
+      
+      IMPORTANTE:
+      - NÃO inclua mensagens introdutórias ou de conclusão
+      - Vá direto para a lista numerada de lugares
+      - Use Markdown: **Nome do Local/Atividade** para negrito
+      - Cada sugestão: número, nome em negrito, descrição, ocasião ideal, faixa de preço e "Por que vai amar:" em negrito
+      - Não use emojis na resposta
+
+      Formato da resposta:
+      1. **Nome do Local ou Atividade**
+         Descrição da experiência em 2-3 linhas.
+         **Ocasião:** Dia/Noite, Casual/Especial
+         **Preço:** R$ estimado
+         **Por que vai amar:** Razão específica.`;
+
+      userPrompt =
+        context.dateLocations && context.dateLocations.length > 0
+          ? `Liste 5 lugares para um casal ter encontros românticos. Eles JÁ FORAM em: ${context.dateLocations.join(
+              ", "
+            )}. NÃO sugira esses lugares. Vá direto para a lista numerada.`
+          : `Liste 5 lugares e atividades criativas para um casal ter encontros românticos memoráveis. Vá direto para a lista numerada.`;
+      break;
+
+    case "finance":
+      systemPrompt = `Você é um consultor financeiro especializado em finanças pessoais para casais.
+      
+      IMPORTANTE:
+      - NÃO inclua mensagens introdutórias ou de conclusão
+      - Vá direto para a análise e dicas
+      - Use Markdown: **Título das Seções** para negrito
+      - Estrutura: Análise dos gastos + Lista numerada de dicas práticas
+      - Não use emojis na resposta
+      
+      Formato da resposta:
+      **Análise dos Gastos:**
+      Breve análise dos principais gastos em 2-3 linhas.
+      
+      **Dicas de Economia:**
+      1. **Nome da Dica**
+         Explicação prática e específica.`;
+
+      if (context.expenses && context.expenses.length > 0) {
+        const categories = context.expenses.reduce((acc: any, exp) => {
+          if (!acc[exp.category]) {
+            acc[exp.category] = { total: 0, items: [] };
+          }
+          acc[exp.category].total += exp.amount;
+          acc[exp.category].items.push(
+            `${exp.description}: R$ ${exp.amount.toFixed(2)}`
+          );
+          return acc;
+        }, {});
+
+        const summary = Object.entries(categories)
+          .map(
+            ([cat, data]: [string, any]) =>
+              `${cat}: R$ ${data.total.toFixed(2)} (${data.items.join(", ")})`
+          )
+          .join("\n");
+
+        userPrompt = `Analise os gastos deste casal e forneça 5 dicas personalizadas de economia:
+
+${summary}
+
+Total gasto: R$ ${context.expenses
+          .reduce((sum, exp) => sum + exp.amount, 0)
+          .toFixed(2)}
+
+Vá direto para a análise e lista de dicas.`;
+      } else {
+        userPrompt = `Forneça 5 dicas gerais de finanças pessoais para um casal organizar despesas e economizar. Vá direto para a lista de dicas.`;
+      }
+      break;
+  }
+
+  try {
+    const response = await axios.post(
+      "https://api.openai.com/v1/chat/completions",
+      {
+        model: OPENAI_MODEL,
+        messages: [
+          { role: "system", content: systemPrompt },
+          { role: "user", content: userPrompt },
+        ],
+        temperature: 0.7,
+        max_tokens: 1000,
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${OPENAI_API_KEY}`,
+          "Content-Type": "application/json",
+        },
+        timeout: 60000,
+      }
+    );
+
+    const recommendation = response.data.choices[0].message.content;
+
+    return recommendation;
+  } catch (error: any) {
+    console.error(
+      `[AI] Error generating ${type} recommendation:`,
+      error.message
+    );
+    throw error;
+  }
 }
